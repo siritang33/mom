@@ -1091,6 +1091,117 @@
             color: var(--danger-color);
         }
         
+        .manage-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .manage-bar .btn {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .batch-actions {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            padding: 15px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
+            z-index: 200;
+        }
+        
+        .batch-actions.show {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .batch-actions .btn {
+            flex: 1;
+        }
+        
+        .checkbox-cell {
+            width: 40px;
+            text-align: center;
+        }
+        
+        .checkbox-cell input {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+        
+        .month-section {
+            margin-bottom: 15px;
+        }
+        
+        .month-header {
+            background: linear-gradient(135deg, #1a5fb4 0%, #2ec27e 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .month-header:hover {
+            opacity: 0.95;
+        }
+        
+        .month-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .month-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 1rem;
+        }
+        
+        .month-content {
+            display: none;
+        }
+        
+        .month-content.expanded {
+            display: block;
+        }
+        
+        .month-toggle {
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+        }
+        
+        .month-toggle.expanded {
+            transform: rotate(180deg);
+        }
+        
+        .cleanup-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 15px;
+        }
+        
+        .cleanup-section h4 {
+            color: var(--danger-color);
+            margin-bottom: 15px;
+        }
+        
+        .cleanup-btns {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
         @media (max-width: 768px) {
             body {
                 font-size: 1.2rem;
@@ -1153,12 +1264,26 @@
                 </div>
             </div>
             
-            <button class="export-btn" onclick="App.exportAll()">
-                <i class="fas fa-file-excel"></i> 导出Excel
-            </button>
+            <div class="manage-bar">
+                <button class="export-btn" onclick="App.exportAll()" style="margin-bottom: 0;">
+                    <i class="fas fa-file-excel"></i> 导出Excel
+                </button>
+                <button class="btn btn-primary" id="manageBtn" onclick="App.toggleManageMode()">
+                    <i class="fas fa-tasks"></i> 管理
+                </button>
+            </div>
             
             <div id="dailySectionsContainer">
             </div>
+        </div>
+        
+        <div class="batch-actions" id="batchActions">
+            <button class="btn btn-secondary" onclick="App.cancelManageMode()">
+                <i class="fas fa-times"></i> 取消
+            </button>
+            <button class="btn btn-danger" onclick="App.batchDelete()">
+                <i class="fas fa-trash"></i> 删除选中
+            </button>
         </div>
         
         <div id="customers" class="main-content">
@@ -1177,10 +1302,19 @@
                 <input type="file" id="restoreFileInput" accept=".json" style="display: none;">
             </div>
             
-            <div class="customer-actions">
-                <button class="btn btn-warning" id="clearTestDataBtn">
-                    <i class="fas fa-broom"></i> 清空测试数据
-                </button>
+            <div class="cleanup-section">
+                <h4><i class="fas fa-trash-alt"></i> 清理历史账单</h4>
+                <div class="cleanup-btns">
+                    <button class="btn btn-warning" onclick="App.cleanupOldData(30)">
+                        <i class="fas fa-calendar-minus"></i> 删除30天前的账单
+                    </button>
+                    <button class="btn btn-warning" onclick="App.cleanupOldData(365)">
+                        <i class="fas fa-calendar-times"></i> 删除一年前的账单
+                    </button>
+                    <button class="btn btn-danger" id="clearTestDataBtn">
+                        <i class="fas fa-broom"></i> 清空所有数据
+                    </button>
+                </div>
             </div>
             
             <div class="customer-list" id="customerList">
@@ -1463,6 +1597,9 @@
             navLevel: 0,
             navPath: { year: null, month: null, day: null },
             confirmCallback: null,
+            manageMode: false,
+            selectedIds: [],
+            expandedMonths: {},
             
             init() {
                 this.loadFromStorage();
@@ -1699,99 +1836,254 @@
                     return;
                 }
                 
-                const groupedByDate = {};
+                const groupedByMonth = {};
                 this.transactions.forEach(t => {
-                    if (!groupedByDate[t.date]) {
-                        groupedByDate[t.date] = [];
+                    const dateParts = t.date.split('-');
+                    const monthKey = `${dateParts[0]}-${dateParts[1]}`;
+                    if (!groupedByMonth[monthKey]) {
+                        groupedByMonth[monthKey] = {};
                     }
-                    groupedByDate[t.date].push(t);
+                    if (!groupedByMonth[monthKey][t.date]) {
+                        groupedByMonth[monthKey][t.date] = [];
+                    }
+                    groupedByMonth[monthKey][t.date].push(t);
                 });
                 
-                const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+                const sortedMonths = Object.keys(groupedByMonth).sort().reverse();
+                const currentMonth = this.getTodayStr().substring(0, 7);
                 
                 let html = '';
-                sortedDates.slice(0, 10).forEach(date => {
-                    const dayTrans = groupedByDate[date];
-                    const summary = this.getDailySummary(date);
-                    const capital = this.dailyCapital[date] || 0;
-                    const profit = summary.totalActual - capital;
-                    const profitClass = profit >= 0 ? 'profit' : 'loss';
-                    const profitText = profit >= 0 ? `+${profit.toFixed(0)}` : profit.toFixed(0);
+                sortedMonths.forEach(monthKey => {
+                    const [year, month] = monthKey.split('-');
+                    const monthData = groupedByMonth[monthKey];
+                    const isCurrentMonth = monthKey === currentMonth;
                     
-                    const dateParts = date.split('-');
-                    const dateDisplay = `${dateParts[0]}年${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日`;
-                    const isToday = date === this.getTodayStr();
-                    const todayBadge = isToday ? '<span style="background:#2ec27e;padding:2px 8px;border-radius:10px;margin-left:10px;font-size:0.9em;">今天</span>' : '';
+                    let monthTotalActual = 0, monthTotalPaid = 0, monthTotalDebt = 0, monthCapital = 0, monthCount = 0;
+                    Object.keys(monthData).forEach(date => {
+                        const summary = this.getDailySummary(date);
+                        monthTotalActual += summary.totalActual;
+                        monthTotalPaid += summary.totalPaid;
+                        monthTotalDebt += summary.totalDebt;
+                        monthCount += summary.count;
+                        monthCapital += this.dailyCapital[date] || 0;
+                    });
+                    const monthProfit = monthTotalActual - monthCapital;
+                    const profitClass = monthProfit >= 0 ? 'profit' : 'loss';
+                    const profitText = monthProfit >= 0 ? `+${monthProfit.toFixed(0)}` : monthProfit.toFixed(0);
                     
-                    html += `<div class="daily-section">
-                        <div class="daily-header">
-                            <span class="daily-date"><i class="fas fa-calendar-day"></i> ${dateDisplay}${todayBadge}</span>
-                            <div class="daily-stats">
-                                <span>${summary.count}单</span>
-                                <span>应收: ${summary.totalActual.toFixed(0)}元</span>
-                                <span>本金: ${capital.toFixed(0)}元</span>
-                                <span class="${profitClass}" style="font-weight: bold;">盈亏: ${profitText}元</span>
+                    const isExpanded = isCurrentMonth || this.expandedMonths[monthKey];
+                    const expandedClass = isExpanded ? 'expanded' : '';
+                    
+                    html += `<div class="month-section">
+                        <div class="month-header" onclick="App.toggleMonth('${monthKey}')">
+                            <span class="month-title">
+                                <i class="fas fa-calendar-alt"></i> ${year}年${parseInt(month)}月
+                                ${isCurrentMonth ? '<span style="background:#2ec27e;padding:2px 8px;border-radius:10px;margin-left:10px;font-size:0.8em;">本月</span>' : ''}
+                            </span>
+                            <div class="month-stats">
+                                <span>${monthCount}单</span>
+                                <span>应收: ${monthTotalActual.toFixed(0)}元</span>
+                                <span class="${profitClass}">盈亏: ${profitText}元</span>
+                                <i class="fas fa-chevron-down month-toggle ${expandedClass}"></i>
                             </div>
                         </div>
-                        <div class="daily-container">
-                            <div class="table-scroll" style="max-height: 300px;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 25%;">客户</th>
-                                            <th style="width: 25%;">货品</th>
-                                            <th style="width: 18%; text-align: right;">应收</th>
-                                            <th style="width: 18%; text-align: right;">已付</th>
-                                            <th style="width: 14%; text-align: center;">欠款</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>`;
+                        <div class="month-content ${expandedClass}">`;
                     
-                    dayTrans.forEach(t => {
-                        const itemsBrief = t.items.map(i => i.name).join('、');
-                        const rowClass = t.debt > 0 ? 'unpaid-row' : '';
+                    const sortedDates = Object.keys(monthData).sort().reverse();
+                    sortedDates.forEach(date => {
+                        const dayTrans = monthData[date];
+                        const summary = this.getDailySummary(date);
+                        const capital = this.dailyCapital[date] || 0;
+                        const profit = summary.totalActual - capital;
+                        const dayProfitClass = profit >= 0 ? 'profit' : 'loss';
+                        const profitText2 = profit >= 0 ? `+${profit.toFixed(0)}` : profit.toFixed(0);
                         
-                        html += `<tr class="${rowClass}" onclick="App.openDetail(${t.id})">
-                            <td class="customer-cell">${t.customer}</td>
-                            <td class="items-cell">${itemsBrief}</td>
-                            <td class="amount-cell">${t.actualAmount.toFixed(0)}元</td>
-                            <td class="amount-cell">${t.paidAmount.toFixed(0)}元</td>
-                            <td class="status-cell"><span class="${t.debt > 0 ? 'status-unpaid' : 'status-paid'}">${t.debt > 0 ? t.debt.toFixed(0) + '元' : '已清'}</span></td>
-                        </tr>`;
-                    });
-                    
-                    html += `</tbody></table></div>
-                            <div class="daily-footer">
-                                <div class="daily-footer-stats">
-                                    <div class="daily-footer-stat">
-                                        <div class="daily-footer-stat-label">应收总额</div>
-                                        <div class="daily-footer-stat-value">${summary.totalActual.toFixed(0)}元</div>
-                                    </div>
-                                    <div class="daily-footer-stat">
-                                        <div class="daily-footer-stat-label">已收现钱</div>
-                                        <div class="daily-footer-stat-value">${summary.totalPaid.toFixed(0)}元</div>
-                                    </div>
-                                    <div class="daily-footer-stat">
-                                        <div class="daily-footer-stat-label">新增欠款</div>
-                                        <div class="daily-footer-stat-value" style="color: var(--danger-color);">${summary.totalDebt.toFixed(0)}元</div>
-                                    </div>
-                                    <div class="capital-input-group">
-                                        <label>今日本金:</label>
-                                        <input type="number" id="capital_${date}" value="${capital}" 
-                                            onchange="App.saveCapital('${date}', this.value)" placeholder="0">
-                                        <span>元</span>
-                                    </div>
-                                    <div class="profit-display ${profitClass}">
-                                        <div class="daily-footer-stat-label">今日盈亏</div>
-                                        <div class="daily-footer-stat-value ${profitClass}">${profitText}元</div>
+                        const dateParts = date.split('-');
+                        const dateDisplay = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日`;
+                        const isToday = date === this.getTodayStr();
+                        const todayBadge = isToday ? '<span style="background:#2ec27e;padding:2px 8px;border-radius:10px;margin-left:10px;font-size:0.9em;">今天</span>' : '';
+                        
+                        html += `<div class="daily-section">
+                            <div class="daily-header">
+                                <span class="daily-date"><i class="fas fa-calendar-day"></i> ${dateDisplay}${todayBadge}</span>
+                                <div class="daily-stats">
+                                    <span>${summary.count}单</span>
+                                    <span>应收: ${summary.totalActual.toFixed(0)}元</span>
+                                    <span>本金: ${capital.toFixed(0)}元</span>
+                                    <span class="${dayProfitClass}" style="font-weight: bold;">盈亏: ${profitText2}元</span>
+                                </div>
+                            </div>
+                            <div class="daily-container">
+                                <div class="table-scroll" style="max-height: 300px;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                ${this.manageMode ? '<th class="checkbox-cell"><input type="checkbox" onchange="App.toggleAllDay(\'' + date + '\', this.checked)"></th>' : ''}
+                                                <th style="width: 25%;">客户</th>
+                                                <th style="width: 25%;">货品</th>
+                                                <th style="width: 18%; text-align: right;">应收</th>
+                                                <th style="width: 18%; text-align: right;">已付</th>
+                                                <th style="width: 14%; text-align: center;">欠款</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>`;
+                        
+                        dayTrans.forEach(t => {
+                            const itemsBrief = t.items.map(i => i.name).join('、');
+                            const rowClass = t.debt > 0 ? 'unpaid-row' : '';
+                            const isSelected = this.selectedIds.includes(t.id);
+                            
+                            html += `<tr class="${rowClass}" 
+                                ${this.manageMode ? '' : `onclick="App.openDetail(${t.id})"`}
+                                ${this.manageMode ? `oncontextmenu="App.longPressSelect(${t.id}); return false;"` : ''}>
+                                ${this.manageMode ? `<td class="checkbox-cell"><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="App.toggleSelect(${t.id})"></td>` : ''}
+                                <td class="customer-cell">${t.customer}</td>
+                                <td class="items-cell">${itemsBrief}</td>
+                                <td class="amount-cell">${t.actualAmount.toFixed(0)}元</td>
+                                <td class="amount-cell">${t.paidAmount.toFixed(0)}元</td>
+                                <td class="status-cell"><span class="${t.debt > 0 ? 'status-unpaid' : 'status-paid'}">${t.debt > 0 ? t.debt.toFixed(0) + '元' : '已清'}</span></td>
+                            </tr>`;
+                        });
+                        
+                        html += `</tbody></table></div>
+                                <div class="daily-footer">
+                                    <div class="daily-footer-stats">
+                                        <div class="daily-footer-stat">
+                                            <div class="daily-footer-stat-label">应收总额</div>
+                                            <div class="daily-footer-stat-value">${summary.totalActual.toFixed(0)}元</div>
+                                        </div>
+                                        <div class="daily-footer-stat">
+                                            <div class="daily-footer-stat-label">已收现钱</div>
+                                            <div class="daily-footer-stat-value">${summary.totalPaid.toFixed(0)}元</div>
+                                        </div>
+                                        <div class="daily-footer-stat">
+                                            <div class="daily-footer-stat-label">新增欠款</div>
+                                            <div class="daily-footer-stat-value" style="color: var(--danger-color);">${summary.totalDebt.toFixed(0)}元</div>
+                                        </div>
+                                        <div class="capital-input-group">
+                                            <label>今日本金:</label>
+                                            <input type="number" id="capital_${date}" value="${capital}" 
+                                                onchange="App.saveCapital('${date}', this.value)" placeholder="0">
+                                            <span>元</span>
+                                        </div>
+                                        <div class="profit-display ${dayProfitClass}">
+                                            <div class="daily-footer-stat-label">今日盈亏</div>
+                                            <div class="daily-footer-stat-value ${dayProfitClass}">${profitText2}元</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>`;
+                        </div>`;
+                    });
+                    
+                    html += `</div></div>`;
                 });
                 
                 container.innerHTML = html;
+                
+                document.getElementById('batchActions').classList.toggle('show', this.manageMode);
+                document.getElementById('manageBtn').innerHTML = this.manageMode ? 
+                    '<i class="fas fa-times"></i> 取消管理' : '<i class="fas fa-tasks"></i> 管理';
+            },
+            
+            toggleMonth(monthKey) {
+                this.expandedMonths[monthKey] = !this.expandedMonths[monthKey];
+                this.updateTodayTable();
+            },
+            
+            toggleManageMode() {
+                this.manageMode = !this.manageMode;
+                this.selectedIds = [];
+                this.updateTodayTable();
+            },
+            
+            cancelManageMode() {
+                this.manageMode = false;
+                this.selectedIds = [];
+                this.updateTodayTable();
+            },
+            
+            toggleSelect(id) {
+                const index = this.selectedIds.indexOf(id);
+                if (index > -1) {
+                    this.selectedIds.splice(index, 1);
+                } else {
+                    this.selectedIds.push(id);
+                }
+            },
+            
+            toggleAllDay(date, checked) {
+                const dayTrans = this.transactions.filter(t => t.date === date);
+                dayTrans.forEach(t => {
+                    const index = this.selectedIds.indexOf(t.id);
+                    if (checked && index === -1) {
+                        this.selectedIds.push(t.id);
+                    } else if (!checked && index > -1) {
+                        this.selectedIds.splice(index, 1);
+                    }
+                });
+            },
+            
+            longPressSelect(id) {
+                if (!this.manageMode) {
+                    this.manageMode = true;
+                    this.selectedIds = [id];
+                    this.updateTodayTable();
+                }
+            },
+            
+            batchDelete() {
+                if (this.selectedIds.length === 0) {
+                    alert('请先选择要删除的记录');
+                    return;
+                }
+                
+                this.showConfirm(
+                    '<i class="fas fa-exclamation-triangle"></i> 批量删除确认',
+                    `确定要删除选中的 ${this.selectedIds.length} 条记录吗？\n此操作不可恢复！`,
+                    () => {
+                        this.transactions = this.transactions.filter(t => !this.selectedIds.includes(t.id));
+                        this.saveToStorage();
+                        this.selectedIds = [];
+                        this.manageMode = false;
+                        this.updateTodayTable();
+                        alert('删除成功！');
+                    }
+                );
+            },
+            
+            cleanupOldData(days) {
+                const cutoffDate = new Date();
+                cutoffDate.setDate(cutoffDate.getDate() - days);
+                const cutoffStr = cutoffDate.toISOString().split('T')[0];
+                
+                const toDelete = this.transactions.filter(t => t.date < cutoffStr);
+                if (toDelete.length === 0) {
+                    alert(`${days}天内没有更早的记录`);
+                    return;
+                }
+                
+                this.showConfirm(
+                    '<i class="fas fa-exclamation-triangle"></i> 清理历史数据',
+                    `即将删除 ${days} 天前（${cutoffStr}之前）的 ${toDelete.length} 条记录。\n\n⚠️ 此操作不可撤销！\n请确认已导出 Excel 备份！`,
+                    () => {
+                        this.showConfirm(
+                            '<i class="fas fa-exclamation-circle"></i> 最终确认',
+                            `真的要删除这 ${toDelete.length} 条历史记录吗？`,
+                            () => {
+                                this.transactions = this.transactions.filter(t => t.date >= cutoffStr);
+                                Object.keys(this.dailyCapital).forEach(date => {
+                                    if (date < cutoffStr) {
+                                        delete this.dailyCapital[date];
+                                    }
+                                });
+                                this.saveToStorage();
+                                this.updateTodayTable();
+                                alert(`已删除 ${toDelete.length} 条历史记录`);
+                            }
+                        );
+                    }
+                );
             },
             
             saveCapital(date, value) {
