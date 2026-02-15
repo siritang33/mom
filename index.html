@@ -1214,6 +1214,34 @@
             gap: 10px;
         }
         
+        .danger-zone-section {
+            background-color: #ffebee;
+            border: 3px solid var(--danger-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .danger-zone-section h4 {
+            color: var(--danger-color);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .danger-btn-large {
+            font-size: 1.5rem !important;
+            padding: 25px !important;
+            background-color: var(--danger-color) !important;
+            border: 3px solid #b71c1c;
+            animation: pulse-danger 2s infinite;
+        }
+        
+        @keyframes pulse-danger {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(224, 27, 36, 0.4); }
+            50% { box-shadow: 0 0 20px 10px rgba(224, 27, 36, 0.2); }
+        }
+        
         @media (max-width: 768px) {
             body {
                 font-size: 1.2rem;
@@ -1304,6 +1332,19 @@
                 <p class="customer-count">共 <span id="customerCount">0</span> 位客户</p>
             </div>
             
+            <div class="add-customer-section">
+                <h4><i class="fas fa-user-plus"></i> 新增客户</h4>
+                <div class="form-row">
+                    <input type="text" id="newCustomerInput" placeholder="输入客户名称" style="flex: 1;">
+                    <button class="btn btn-success" id="addCustomerBtn" style="width: auto; padding: 15px 25px;">
+                        <i class="fas fa-plus"></i> 添加
+                    </button>
+                </div>
+            </div>
+            
+            <div class="customer-list" id="customerList">
+            </div>
+            
             <div class="customer-actions">
                 <button class="btn btn-primary" id="backupDataBtn" style="background-color: var(--primary-color);">
                     <i class="fas fa-download"></i> 备份数据
@@ -1323,23 +1364,14 @@
                     <button class="btn btn-warning" onclick="App.cleanupOldData(365)">
                         <i class="fas fa-calendar-times"></i> 删除一年前的账单
                     </button>
-                    <button class="btn btn-danger" id="clearTestDataBtn">
-                        <i class="fas fa-broom"></i> 清空所有数据
-                    </button>
                 </div>
             </div>
             
-            <div class="customer-list" id="customerList">
-            </div>
-            
-            <div class="add-customer-section">
-                <h4><i class="fas fa-user-plus"></i> 新增客户</h4>
-                <div class="form-row">
-                    <input type="text" id="newCustomerInput" placeholder="输入客户名称" style="flex: 1;">
-                    <button class="btn btn-success" id="addCustomerBtn" style="width: auto; padding: 15px 25px;">
-                        <i class="fas fa-plus"></i> 添加
-                    </button>
-                </div>
+            <div class="danger-zone-section">
+                <h4><i class="fas fa-exclamation-triangle"></i> 危险操作区</h4>
+                <button class="btn btn-danger danger-btn-large" id="clearTestDataBtn">
+                    <i class="fas fa-broom"></i> 清空所有数据
+                </button>
             </div>
         </div>
         
@@ -2888,6 +2920,7 @@
                                 localStorage.removeItem('pigCustomers');
                                 localStorage.removeItem('pigDailyCapital');
                                 localStorage.removeItem('pigDefaultPrices');
+                                alert('所有账单和客户资料已彻底清空！');
                                 location.reload();
                             }
                         );
