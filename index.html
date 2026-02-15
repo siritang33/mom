@@ -33,7 +33,7 @@
             font-size: 1.3rem;
             line-height: 1.6;
             padding: 10px;
-            padding-bottom: 100px;
+            padding-bottom: 120px;
             max-width: 100%;
             overflow-x: hidden;
         }
@@ -434,6 +434,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: bottom 0.3s;
+        }
+        
+        .quick-add-btn.hidden {
+            bottom: -100px;
         }
         
         .quick-add-btn:hover {
@@ -1110,18 +1115,23 @@
             left: 0;
             right: 0;
             background-color: white;
-            padding: 15px;
+            padding: 20px 15px;
             box-shadow: 0 -4px 15px rgba(0,0,0,0.2);
-            z-index: 200;
+            z-index: 99999 !important;
+            pointer-events: auto !important;
+            border-top: 3px solid var(--primary-color);
         }
         
         .batch-actions.show {
             display: flex;
-            gap: 10px;
+            gap: 15px;
         }
         
         .batch-actions .btn {
             flex: 1;
+            padding: 20px;
+            font-size: 1.4rem;
+            font-weight: bold;
         }
         
         .checkbox-cell {
@@ -1601,6 +1611,8 @@
             selectedIds: [],
             expandedMonths: {},
             
+            round2(val) { return Math.round(val * 100) / 100; },
+            
             init() {
                 this.loadFromStorage();
                 if (this.customers.length === 0) {
@@ -1984,6 +1996,7 @@
                 document.getElementById('batchActions').classList.toggle('show', this.manageMode);
                 document.getElementById('manageBtn').innerHTML = this.manageMode ? 
                     '<i class="fas fa-times"></i> 取消管理' : '<i class="fas fa-tasks"></i> 管理';
+                document.getElementById('quickAddBtn').classList.toggle('hidden', this.manageMode);
             },
             
             toggleMonth(monthKey) {
@@ -1994,12 +2007,20 @@
             toggleManageMode() {
                 this.manageMode = !this.manageMode;
                 this.selectedIds = [];
-                this.updateTodayTable();
+                if (this.manageMode) {
+                    document.body.style.paddingBottom = '200px';
+                    this.updateTodayTable();
+                    document.getElementById('batchActions').querySelector('.btn-secondary').onclick = () => this.cancelManageMode();
+                } else {
+                    document.body.style.paddingBottom = '120px';
+                    this.updateTodayTable();
+                }
             },
             
             cancelManageMode() {
                 this.manageMode = false;
                 this.selectedIds = [];
+                document.body.style.paddingBottom = '120px';
                 this.updateTodayTable();
             },
             
@@ -2390,7 +2411,7 @@
                 let html = '';
                 
                 this.currentProducts.forEach((p, index) => {
-                    const rowTotal = (p.weight - p.deduction) * p.price;
+                    const rowTotal = this.round2((p.weight - p.deduction) * p.price);
                     html += `<div class="product-row">
                         <div class="product-row-header">
                             <span class="product-row-name">${p.name}</span>
@@ -2442,15 +2463,16 @@
             calculateTotal() {
                 let totalPrice = 0;
                 this.currentProducts.forEach(p => {
-                    totalPrice += (p.weight - p.deduction) * p.price;
+                    totalPrice += this.round2((p.weight - p.deduction) * p.price);
                 });
+                totalPrice = this.round2(totalPrice);
                 
                 const badMeat = parseFloat(document.getElementById('inputBadMeat').value) || 0;
                 const discount = parseFloat(document.getElementById('inputDiscount').value) || 0;
                 const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
                 
-                const actualAmount = totalPrice - badMeat - discount;
-                const debt = actualAmount - paid;
+                const actualAmount = this.round2(totalPrice - badMeat - discount);
+                const debt = this.round2(actualAmount - paid);
                 
                 document.getElementById('calcTotalPrice').textContent = totalPrice.toFixed(2) + ' 元';
                 document.getElementById('calcActualAmount').textContent = actualAmount.toFixed(2) + ' 元';
@@ -2498,17 +2520,18 @@
                 
                 let totalPrice = 0;
                 this.currentProducts.forEach(p => {
-                    totalPrice += (p.weight - p.deduction) * p.price;
+                    totalPrice += this.round2((p.weight - p.deduction) * p.price);
                 });
+                totalPrice = this.round2(totalPrice);
                 
                 const badMeat = parseFloat(document.getElementById('inputBadMeat').value) || 0;
                 const discount = parseFloat(document.getElementById('inputDiscount').value) || 0;
                 const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
-                const actualAmount = totalPrice - badMeat - discount;
-                const debt = actualAmount - paid;
+                const actualAmount = this.round2(totalPrice - badMeat - discount);
+                const debt = this.round2(actualAmount - paid);
                 
                 const transaction = {
-                    id: Date.now(),
+                    id: Date.now() + Math.random().toString(36).substr(2, 9),
                     date: selectedDate,
                     customer,
                     items: this.currentProducts.map(p => ({
@@ -2516,7 +2539,7 @@
                         weight: p.weight,
                         price: p.price,
                         deduction: p.deduction,
-                        subtotal: (p.weight - p.deduction) * p.price
+                        subtotal: this.round2((p.weight - p.deduction) * p.price)
                     })),
                     totalPrice,
                     badMeat,
@@ -2629,7 +2652,7 @@
             updateEditProductField(index, field, value) {
                 if (this.editProducts[index]) {
                     this.editProducts[index][field] = parseFloat(value) || 0;
-                    this.editProducts[index].subtotal = (this.editProducts[index].weight - this.editProducts[index].deduction) * this.editProducts[index].price;
+                    this.editProducts[index].subtotal = this.round2((this.editProducts[index].weight - this.editProducts[index].deduction) * this.editProducts[index].price);
                     this.renderDetailItems(this.editProducts, true);
                     this.calculateEditTotal();
                 }
@@ -2638,15 +2661,16 @@
             calculateEditTotal() {
                 let totalPrice = 0;
                 this.editProducts.forEach(p => {
-                    totalPrice += (p.weight - p.deduction) * p.price;
+                    totalPrice += this.round2((p.weight - p.deduction) * p.price);
                 });
+                totalPrice = this.round2(totalPrice);
                 
                 const badMeat = parseFloat(document.getElementById('editBadMeat').value) || 0;
                 const discount = parseFloat(document.getElementById('editDiscount').value) || 0;
                 const paid = parseFloat(document.getElementById('editPaid').value) || 0;
                 
-                const actualAmount = totalPrice - badMeat - discount;
-                const debt = actualAmount - paid;
+                const actualAmount = this.round2(totalPrice - badMeat - discount);
+                const debt = this.round2(actualAmount - paid);
                 
                 document.getElementById('detailTotalPrice').textContent = totalPrice.toFixed(2) + ' 元';
                 document.getElementById('detailActualAmount').textContent = actualAmount.toFixed(2) + ' 元';
@@ -2689,14 +2713,15 @@
                 
                 let totalPrice = 0;
                 this.editProducts.forEach(p => {
-                    totalPrice += (p.weight - p.deduction) * p.price;
+                    totalPrice += this.round2((p.weight - p.deduction) * p.price);
                 });
+                totalPrice = this.round2(totalPrice);
                 
                 const badMeat = parseFloat(document.getElementById('editBadMeat').value) || 0;
                 const discount = parseFloat(document.getElementById('editDiscount').value) || 0;
                 const paid = parseFloat(document.getElementById('editPaid').value) || 0;
-                const actualAmount = totalPrice - badMeat - discount;
-                const debt = actualAmount - paid;
+                const actualAmount = this.round2(totalPrice - badMeat - discount);
+                const debt = this.round2(actualAmount - paid);
                 
                 t.date = newDate;
                 t.items = this.editProducts.map(p => ({
@@ -2704,7 +2729,7 @@
                     weight: p.weight,
                     price: p.price,
                     deduction: p.deduction,
-                    subtotal: (p.weight - p.deduction) * p.price
+                    subtotal: this.round2((p.weight - p.deduction) * p.price)
                 }));
                 t.totalPrice = totalPrice;
                 t.badMeat = badMeat;
@@ -2747,8 +2772,8 @@
                     '<i class="fas fa-hand-holding-usd"></i> 确认回款',
                     `确定登记回款 ${addPayment.toFixed(2)} 元吗？`,
                     () => {
-                        t.paidAmount += addPayment;
-                        t.debt = t.actualAmount - t.paidAmount;
+                        t.paidAmount = this.round2(t.paidAmount + addPayment);
+                        t.debt = this.round2(t.actualAmount - t.paidAmount);
                         if (t.debt < 0) t.debt = 0;
                         
                         this.saveToStorage();
