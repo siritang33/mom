@@ -1,0 +1,2819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>猪肉批发记账本</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-weight: bold;
+        }
+        
+        :root {
+            --primary-color: #1a5fb4;
+            --secondary-color: #2ec27e;
+            --danger-color: #e01b24;
+            --warning-color: #ff9800;
+            --purple-color: #7b1fa2;
+            --light-color: #f8f9fa;
+            --dark-color: #333333;
+            --border-color: #ddd;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            font-size: 1.3rem;
+            line-height: 1.6;
+            padding: 10px;
+            padding-bottom: 100px;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a5fb4 0%, #2ec27e 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .main-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .main-tab {
+            flex: 1;
+            padding: 15px 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .main-tab.active {
+            background: linear-gradient(135deg, #1a5fb4 0%, #2ec27e 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(26, 95, 180, 0.4);
+        }
+        
+        .main-content {
+            display: none;
+        }
+        
+        .main-content.active {
+            display: block;
+        }
+        
+        .search-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+        }
+        
+        .search-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .search-input-wrapper {
+            position: relative;
+        }
+        
+        .search-input-wrapper input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 0 0 12px 12px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+        
+        .search-results.show {
+            display: block;
+        }
+        
+        .search-result-item {
+            padding: 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .search-result-item .debt-badge {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        
+        .search-result-item .paid-badge {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        
+        .export-btn {
+            background: linear-gradient(135deg, #2ec27e 0%, #1a5fb4 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .export-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .nav-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .nav-back {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: white;
+            color: var(--primary-color);
+            border: none;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .nav-back:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .nav-path {
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+            padding: 5px;
+        }
+        
+        .level-card {
+            background-color: white;
+            border-radius: 15px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .level-item {
+            padding: 20px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .level-item:last-child {
+            border-bottom: none;
+        }
+        
+        .level-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .level-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        .level-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .level-stat {
+            text-align: right;
+        }
+        
+        .level-stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .level-stat-value {
+            font-weight: bold;
+        }
+        
+        .level-stat-value.income {
+            color: var(--secondary-color);
+        }
+        
+        .level-stat-value.debt {
+            color: var(--danger-color);
+        }
+        
+        .level-arrow {
+            font-size: 1.5rem;
+            color: #ccc;
+            margin-left: 10px;
+        }
+        
+        .table-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .table-scroll {
+            max-height: 55vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 14px 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.1rem;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr.unpaid-row {
+            background-color: #ffebee;
+        }
+        
+        tr:active {
+            background-color: #e9ecef;
+        }
+        
+        .customer-cell {
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+        
+        .items-cell {
+            font-size: 1rem;
+            color: #555;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .amount-cell {
+            font-weight: bold;
+            text-align: right;
+        }
+        
+        .status-cell {
+            text-align: center;
+        }
+        
+        .status-paid {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        
+        .status-unpaid {
+            display: inline-block;
+            background-color: var(--danger-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .table-footer {
+            background: linear-gradient(135deg, #1a5fb4 0%, #2ec27e 100%);
+            color: white;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .footer-stat {
+            text-align: center;
+        }
+        
+        .footer-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .footer-stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .quick-add-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2ec27e 0%, #1a5fb4 100%);
+            color: white;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .quick-add-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 15px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 95vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 1.4rem;
+            color: var(--primary-color);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #666;
+            padding: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        label {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: var(--dark-color);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            background-color: white;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(26, 95, 180, 0.2);
+        }
+        
+        input:read-only {
+            background-color: #f5f5f5;
+        }
+        
+        input.editable {
+            background-color: #fffde7;
+            border-color: var(--warning-color);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .product-btns-section {
+            margin-bottom: 15px;
+        }
+        
+        .product-group-title {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 8px;
+            padding-left: 5px;
+        }
+        
+        .product-btns {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        
+        .product-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .product-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .product-btn.secondary {
+            background-color: var(--purple-color);
+        }
+        
+        .product-btn.selected {
+            background-color: var(--secondary-color);
+        }
+        
+        .product-rows {
+            margin-bottom: 15px;
+        }
+        
+        .product-row {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .product-row.edit-mode {
+            background-color: #fffde7;
+            border-color: var(--warning-color);
+        }
+        
+        .product-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .product-row-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .product-row-delete {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        .product-row-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .product-row-inputs label {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+        
+        .product-row-inputs input {
+            padding: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .product-row-total {
+            text-align: right;
+            font-size: 1.1rem;
+            color: var(--secondary-color);
+            margin-top: 8px;
+        }
+        
+        .calc-section {
+            background-color: #e9f7fe;
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .calc-section.edit-mode {
+            background-color: #fff8e1;
+            border-color: var(--warning-color);
+        }
+        
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .calc-label {
+            color: #555;
+        }
+        
+        .calc-value {
+            font-weight: bold;
+        }
+        
+        .calc-value.income {
+            color: var(--secondary-color);
+        }
+        
+        .calc-value.debt {
+            color: var(--danger-color);
+        }
+        
+        .calc-row.highlight {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .calc-row.highlight .calc-value {
+            font-size: 1.3rem;
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        
+        .btn-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-row .btn {
+            flex: 1;
+        }
+        
+        .detail-section {
+            background-color: #f5f5f5;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .detail-section.edit-mode {
+            background-color: #fff8e1;
+            border: 2px solid var(--warning-color);
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        
+        .detail-label {
+            color: #666;
+        }
+        
+        .detail-value {
+            font-weight: bold;
+        }
+        
+        .detail-items {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+        }
+        
+        .detail-item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px dashed #ddd;
+            font-size: 0.95rem;
+        }
+        
+        .detail-item-row:last-child {
+            border-bottom: none;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #777;
+        }
+        
+        .empty-state i {
+            font-size: 50px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+        }
+        
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 0 0 12px 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+        
+        .suggestions.show {
+            display: block;
+        }
+        
+        .suggestion-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            font-size: 1.1rem;
+        }
+        
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .customer-input-wrapper {
+            position: relative;
+        }
+        
+        .customer-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .customer-header h3 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .customer-count {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .customer-actions {
+            margin-bottom: 15px;
+        }
+        
+        .customer-list {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        
+        .customer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.3rem;
+        }
+        
+        .customer-item:last-child {
+            border-bottom: none;
+        }
+        
+        .customer-item:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .customer-name {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .customer-name i {
+            color: var(--primary-color);
+        }
+        
+        .customer-delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .add-customer-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .add-customer-section h4 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .confirm-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .confirm-box {
+            background-color: white;
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .confirm-box h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            color: var(--danger-color);
+        }
+        
+        .confirm-box p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #555;
+        }
+        
+        .confirm-box .btn-row {
+            gap: 15px;
+        }
+        
+        .customer-ledger {
+            display: none;
+        }
+        
+        .customer-ledger.active {
+            display: block;
+        }
+        
+        .ledger-header {
+            background: linear-gradient(135deg, #1a5fb4 0%, #2ec27e 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .ledger-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .ledger-summary {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+        
+        .ledger-stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+        
+        .ledger-stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .daily-section {
+            margin-bottom: 20px;
+        }
+        
+        .daily-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .daily-date {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .daily-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 1rem;
+        }
+        
+        .daily-container {
+            background-color: white;
+            border-radius: 0 0 15px 15px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        
+        .daily-footer {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e9ecef 100%);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-top: 2px solid #ddd;
+        }
+        
+        .daily-footer-stats {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .daily-footer-stat {
+            text-align: center;
+        }
+        
+        .daily-footer-stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .daily-footer-stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .daily-footer-stat-value.profit {
+            color: var(--secondary-color);
+        }
+        
+        .daily-footer-stat-value.loss {
+            color: var(--danger-color);
+        }
+        
+        .capital-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .capital-input-group label {
+            font-size: 1rem;
+            margin: 0;
+            white-space: nowrap;
+        }
+        
+        .capital-input-group input {
+            width: 100px;
+            padding: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .profit-display {
+            text-align: center;
+            padding: 5px 15px;
+            border-radius: 10px;
+        }
+        
+        .profit-display.profit {
+            background-color: #e8f5e9;
+            color: var(--secondary-color);
+        }
+        
+        .profit-display.loss {
+            background-color: #ffebee;
+            color: var(--danger-color);
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                font-size: 1.2rem;
+                padding: 8px;
+                padding-bottom: 90px;
+            }
+            
+            .main-tab {
+                font-size: 1.1rem;
+                padding: 12px 8px;
+            }
+            
+            th {
+                font-size: 1rem;
+                padding: 10px 6px;
+            }
+            
+            td {
+                font-size: 1rem;
+                padding: 12px 6px;
+            }
+            
+            .quick-add-btn {
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+            }
+            
+            .product-row-inputs {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-piggy-bank"></i> 猪肉批发记账本</h1>
+            <p class="subtitle">简单记录，清楚算账</p>
+        </header>
+        
+        <div class="main-tabs">
+            <button class="main-tab active" data-tab="today">
+                <i class="fas fa-plus-circle"></i> 记账
+            </button>
+            <button class="main-tab" data-tab="customers">
+                <i class="fas fa-users"></i> 客户
+            </button>
+            <button class="main-tab" data-tab="history">
+                <i class="fas fa-history"></i> 查账
+            </button>
+        </div>
+        
+        <div id="today" class="main-content active">
+            <div class="search-section">
+                <h3><i class="fas fa-search"></i> 搜索客户档案</h3>
+                <div class="search-input-wrapper">
+                    <input type="text" id="globalSearch" placeholder="输入客户名查看往来全账簿..." autocomplete="off">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+            </div>
+            
+            <button class="export-btn" onclick="App.exportAll()">
+                <i class="fas fa-file-excel"></i> 导出Excel
+            </button>
+            
+            <div id="dailySectionsContainer">
+            </div>
+        </div>
+        
+        <div id="customers" class="main-content">
+            <div class="customer-header">
+                <h3><i class="fas fa-users"></i> 客户联系簿</h3>
+                <p class="customer-count">共 <span id="customerCount">0</span> 位客户</p>
+            </div>
+            
+            <div class="customer-actions">
+                <button class="btn btn-primary" id="backupDataBtn" style="background-color: var(--primary-color);">
+                    <i class="fas fa-download"></i> 备份数据
+                </button>
+                <button class="btn btn-success" id="restoreDataBtn">
+                    <i class="fas fa-upload"></i> 还原数据
+                </button>
+                <input type="file" id="restoreFileInput" accept=".json" style="display: none;">
+            </div>
+            
+            <div class="customer-actions">
+                <button class="btn btn-warning" id="clearTestDataBtn">
+                    <i class="fas fa-broom"></i> 清空测试数据
+                </button>
+            </div>
+            
+            <div class="customer-list" id="customerList">
+            </div>
+            
+            <div class="add-customer-section">
+                <h4><i class="fas fa-user-plus"></i> 新增客户</h4>
+                <div class="form-row">
+                    <input type="text" id="newCustomerInput" placeholder="输入客户名称" style="flex: 1;">
+                    <button class="btn btn-success" id="addCustomerBtn" style="width: auto; padding: 15px 25px;">
+                        <i class="fas fa-plus"></i> 添加
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="history" class="main-content">
+            <div id="historyContent"></div>
+        </div>
+        
+        <div id="customerLedger" class="customer-ledger">
+            <div class="ledger-header">
+                <button class="nav-back" onclick="App.closeLedger()">
+                    <i class="fas fa-arrow-left"></i> 返回首页
+                </button>
+                <div class="ledger-title" id="ledgerTitle">客户往来全账簿</div>
+                <div class="ledger-summary">
+                    <div>
+                        <div class="ledger-stat-value" id="ledgerTotal">0元</div>
+                        <div class="ledger-stat-label">累计生意总额</div>
+                    </div>
+                    <div>
+                        <div class="ledger-stat-value" id="ledgerPaid">0元</div>
+                        <div class="ledger-stat-label">累计已付金额</div>
+                    </div>
+                    <div>
+                        <div class="ledger-stat-value" id="ledgerDebt" style="color: #ffcdd2;">0元</div>
+                        <div class="ledger-stat-label">累计未结欠款</div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-container">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">日期</th>
+                                <th style="width: 30%;">货品</th>
+                                <th style="width: 18%; text-align: right;">金额</th>
+                                <th style="width: 18%; text-align: right;">已付</th>
+                                <th style="width: 14%; text-align: center;">状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledgerTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <button class="quick-add-btn" id="quickAddBtn">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-edit"></i> 记一笔</h3>
+                <button class="modal-close" onclick="closeAddModal()">&times;</button>
+            </div>
+            
+            <form id="addForm">
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-alt"></i> 日期</label>
+                    <input type="date" id="inputDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> 客户名</label>
+                    <div class="customer-input-wrapper">
+                        <input type="text" id="customerInput" placeholder="选择或输入客户名" required autocomplete="off">
+                        <div class="suggestions" id="customerSuggestions"></div>
+                    </div>
+                </div>
+                
+                <div class="product-btns-section">
+                    <div class="product-group-title">常用货品</div>
+                    <div class="product-btns" id="mainProducts">
+                        <button type="button" class="product-btn" data-product="前腿肉">前腿肉</button>
+                        <button type="button" class="product-btn" data-product="后腿肉">后腿肉</button>
+                        <button type="button" class="product-btn" data-product="五花肉">五花肉</button>
+                        <button type="button" class="product-btn" data-product="筒子骨">筒子骨</button>
+                        <button type="button" class="product-btn" data-product="排骨">排骨</button>
+                        <button type="button" class="product-btn" data-product="杂骨">杂骨</button>
+                        <button type="button" class="product-btn" data-product="猪脚">猪脚</button>
+                        <button type="button" class="product-btn" data-product="白条">白条</button>
+                    </div>
+                    
+                    <div class="product-group-title">次要货品</div>
+                    <div class="product-btns" id="subProducts">
+                        <button type="button" class="product-btn secondary" data-product="腰花">腰花</button>
+                        <button type="button" class="product-btn secondary" data-product="板油">板油</button>
+                        <button type="button" class="product-btn secondary" data-product="猪头">猪头</button>
+                        <button type="button" class="product-btn secondary" data-product="猪尾">猪尾</button>
+                        <button type="button" class="product-btn secondary" data-product="肚子">肚子</button>
+                        <button type="button" class="product-btn secondary" data-product="肠子">肠子</button>
+                        <button type="button" class="product-btn secondary" data-product="心">心</button>
+                        <button type="button" class="product-btn secondary" data-product="舌">舌</button>
+                        <button type="button" class="product-btn secondary" data-product="肝">肝</button>
+                    </div>
+                </div>
+                
+                <div class="product-rows" id="productRows">
+                </div>
+                
+                <div class="calc-section">
+                    <div class="calc-row">
+                        <span class="calc-label">货品总价:</span>
+                        <span class="calc-value" id="calcTotalPrice">0 元</span>
+                    </div>
+                    
+                    <div class="form-row" style="margin-top: 10px;">
+                        <div class="form-group">
+                            <label>烂肉扣减</label>
+                            <input type="number" id="inputBadMeat" step="0.1" min="0" value="0" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>抹零/少钱</label>
+                            <input type="number" id="inputDiscount" step="0.1" min="0" value="0" placeholder="0">
+                        </div>
+                    </div>
+                    
+                    <div class="calc-row highlight">
+                        <span class="calc-label">实际应收:</span>
+                        <span class="calc-value income" id="calcActualAmount">0 元</span>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label>已支付金额</label>
+                        <input type="number" id="inputPaid" step="0.1" min="0" value="0" placeholder="0">
+                    </div>
+                    
+                    <div class="calc-row highlight">
+                        <span class="calc-label">欠款金额:</span>
+                        <span class="calc-value debt" id="calcDebt">0 元</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> 保存
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="detailTitle">交易详情</h3>
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+            </div>
+            
+            <div class="detail-section" id="detailInfoSection">
+                <div class="detail-row" id="detailDateRow">
+                    <span class="detail-label">日期</span>
+                    <span class="detail-value" id="detailDate">-</span>
+                </div>
+                <div class="form-group" id="editDateGroup" style="display: none;">
+                    <label><i class="fas fa-calendar-alt"></i> 日期</label>
+                    <input type="date" id="editDate" class="editable">
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">客户</span>
+                    <span class="detail-value" id="detailCustomer">-</span>
+                </div>
+            </div>
+            
+            <div class="detail-section" id="detailItemsSection">
+                <div class="detail-row">
+                    <span class="detail-label">货品明细</span>
+                </div>
+                <div class="detail-items" id="detailItems">
+                </div>
+            </div>
+            
+            <div class="calc-section" id="detailCalcSection">
+                <div class="calc-row">
+                    <span class="calc-label">货品总价</span>
+                    <span class="calc-value" id="detailTotalPrice">- 元</span>
+                </div>
+                
+                <div class="form-row" style="margin-top: 10px;">
+                    <div class="form-group">
+                        <label>烂肉扣减</label>
+                        <input type="number" id="editBadMeat" step="0.1" min="0" value="0" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>抹零/少钱</label>
+                        <input type="number" id="editDiscount" step="0.1" min="0" value="0" readonly>
+                    </div>
+                </div>
+                
+                <div class="calc-row highlight">
+                    <span class="calc-label">实际应收:</span>
+                    <span class="calc-value income" id="detailActualAmount">- 元</span>
+                </div>
+                
+                <div class="form-group" style="margin-top: 10px;">
+                    <label>已支付金额</label>
+                    <input type="number" id="editPaid" step="0.1" min="0" value="0" readonly>
+                </div>
+                
+                <div class="calc-row highlight">
+                    <span class="calc-label">欠款金额:</span>
+                    <span class="calc-value debt" id="detailDebt">- 元</span>
+                </div>
+            </div>
+            
+            <div class="detail-section" id="paymentSection" style="display: none;">
+                <h4 style="margin-bottom: 10px; color: var(--warning-color);"><i class="fas fa-hand-holding-usd"></i> 补充回款</h4>
+                <div class="form-group">
+                    <label>新增回款金额</label>
+                    <input type="number" id="inputAddPayment" step="0.1" min="0" placeholder="0">
+                </div>
+            </div>
+            
+            <div class="btn-row" style="margin-bottom: 10px;">
+                <button class="btn btn-warning" id="editBtn">
+                    <i class="fas fa-edit"></i> 修改/编辑
+                </button>
+            </div>
+            
+            <div class="btn-row" id="actionBtns">
+                <button class="btn btn-success" id="savePaymentBtn">
+                    <i class="fas fa-check"></i> 保存回款
+                </button>
+                <button class="btn btn-danger" id="deleteBtn">
+                    <i class="fas fa-trash"></i> 删除
+                </button>
+            </div>
+            
+            <div class="btn-row" id="editActionBtns" style="display: none;">
+                <button class="btn btn-success" id="saveEditBtn">
+                    <i class="fas fa-save"></i> 保存修改
+                </button>
+                <button class="btn btn-secondary" id="cancelEditBtn">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-box">
+            <h3 id="confirmTitle"><i class="fas fa-exclamation-triangle"></i> 确认操作</h3>
+            <p id="confirmMessage">确定要执行此操作吗？</p>
+            <div class="btn-row">
+                <button class="btn btn-secondary" id="confirmCancel">取消</button>
+                <button class="btn btn-danger" id="confirmOk">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const App = {
+            transactions: [],
+            customers: [],
+            dailyCapital: {},
+            defaultPrices: {
+                '前腿肉': 10, '后腿肉': 10, '五花肉': 10, '筒子骨': 10,
+                '排骨': 13.5, '杂骨': 9.5, '猪脚': 10, '白条': 9.5,
+                '腰花': 15, '板油': 10, '猪头': 8, '猪尾': 12,
+                '肚子': 12, '肠子': 8, '心': 10, '舌': 12, '肝': 8
+            },
+            currentProducts: [],
+            currentTransactionId: null,
+            editMode: false,
+            editProducts: [],
+            navLevel: 0,
+            navPath: { year: null, month: null, day: null },
+            confirmCallback: null,
+            
+            init() {
+                this.loadFromStorage();
+                if (this.customers.length === 0) {
+                    this.customers = ["张老板", "李饭店", "王食堂", "赵超市", "刘餐馆"];
+                }
+                this.bindEvents();
+                this.updateTodayTable();
+            },
+            
+            loadFromStorage() {
+                const t = localStorage.getItem('pigTransactions');
+                if (t) this.transactions = JSON.parse(t);
+                
+                const c = localStorage.getItem('pigCustomers');
+                if (c) this.customers = JSON.parse(c);
+                
+                const dp = localStorage.getItem('pigDefaultPrices');
+                if (dp) this.defaultPrices = { ...this.defaultPrices, ...JSON.parse(dp) };
+                
+                const dc = localStorage.getItem('pigDailyCapital');
+                if (dc) this.dailyCapital = JSON.parse(dc);
+            },
+            
+            saveToStorage() {
+                localStorage.setItem('pigTransactions', JSON.stringify(this.transactions));
+                localStorage.setItem('pigCustomers', JSON.stringify(this.customers));
+                localStorage.setItem('pigDefaultPrices', JSON.stringify(this.defaultPrices));
+                localStorage.setItem('pigDailyCapital', JSON.stringify(this.dailyCapital));
+            },
+            
+            showConfirm(title, message, callback) {
+                document.getElementById('confirmTitle').innerHTML = title;
+                document.getElementById('confirmMessage').textContent = message;
+                this.confirmCallback = callback;
+                document.getElementById('confirmModal').style.display = 'flex';
+            },
+            
+            bindEvents() {
+                document.querySelectorAll('.main-tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.main-content').forEach(c => c.classList.remove('active'));
+                        tab.classList.add('active');
+                        document.getElementById(tab.dataset.tab).classList.add('active');
+                        
+                        document.getElementById('customerLedger').classList.remove('active');
+                        
+                        if (tab.dataset.tab === 'history') {
+                            this.navLevel = 0;
+                            this.showYears();
+                        } else if (tab.dataset.tab === 'customers') {
+                            this.updateCustomerList();
+                        } else {
+                            this.updateTodayTable();
+                        }
+                    });
+                });
+                
+                document.getElementById('quickAddBtn').addEventListener('click', () => this.openAddModal());
+                
+                document.getElementById('clearTestDataBtn').addEventListener('click', () => this.clearTestData());
+                document.getElementById('addCustomerBtn').addEventListener('click', () => this.addNewCustomer());
+                document.getElementById('newCustomerInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addNewCustomer();
+                });
+                
+                document.querySelectorAll('.product-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.addProductRow(btn.dataset.product));
+                });
+                
+                document.getElementById('addForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.saveTransaction();
+                });
+                
+                document.getElementById('customerInput').addEventListener('input', (e) => this.showSuggestions(e.target.value));
+                
+                document.getElementById('inputBadMeat').addEventListener('input', () => this.calculateTotal());
+                document.getElementById('inputDiscount').addEventListener('input', () => this.calculateTotal());
+                document.getElementById('inputPaid').addEventListener('input', () => this.calculateTotal());
+                
+                document.getElementById('editBadMeat').addEventListener('input', () => this.calculateEditTotal());
+                document.getElementById('editDiscount').addEventListener('input', () => this.calculateEditTotal());
+                document.getElementById('editPaid').addEventListener('input', () => this.calculateEditTotal());
+                
+                document.getElementById('savePaymentBtn').addEventListener('click', () => this.savePayment());
+                document.getElementById('deleteBtn').addEventListener('click', () => this.confirmDelete());
+                document.getElementById('editBtn').addEventListener('click', () => this.enterEditMode());
+                document.getElementById('saveEditBtn').addEventListener('click', () => this.saveEdit());
+                document.getElementById('cancelEditBtn').addEventListener('click', () => this.cancelEdit());
+                
+                document.getElementById('backupDataBtn').addEventListener('click', () => this.backupData());
+                document.getElementById('restoreDataBtn').addEventListener('click', () => document.getElementById('restoreFileInput').click());
+                document.getElementById('restoreFileInput').addEventListener('change', (e) => this.restoreData(e));
+                
+                document.getElementById('confirmCancel').addEventListener('click', () => {
+                    document.getElementById('confirmModal').style.display = 'none';
+                    this.confirmCallback = null;
+                });
+                
+                document.getElementById('confirmOk').addEventListener('click', () => {
+                    document.getElementById('confirmModal').style.display = 'none';
+                    if (this.confirmCallback) {
+                        this.confirmCallback();
+                        this.confirmCallback = null;
+                    }
+                });
+                
+                document.getElementById('globalSearch').addEventListener('input', (e) => this.globalSearch(e.target.value));
+                
+                document.addEventListener('click', (e) => {
+                    if (!e.target.closest('.search-input-wrapper')) {
+                        document.getElementById('searchResults').classList.remove('show');
+                    }
+                    if (!e.target.closest('.customer-input-wrapper')) {
+                        document.getElementById('customerSuggestions').classList.remove('show');
+                    }
+                });
+            },
+            
+            globalSearch(query) {
+                const resultsDiv = document.getElementById('searchResults');
+                if (!query.trim()) {
+                    resultsDiv.classList.remove('show');
+                    return;
+                }
+                
+                const customerTrans = {};
+                this.transactions.forEach(t => {
+                    if (t.customer.includes(query)) {
+                        if (!customerTrans[t.customer]) {
+                            customerTrans[t.customer] = { total: 0, paid: 0, debt: 0, count: 0 };
+                        }
+                        customerTrans[t.customer].total += t.actualAmount;
+                        customerTrans[t.customer].paid += t.paidAmount;
+                        customerTrans[t.customer].debt += t.debt;
+                        customerTrans[t.customer].count++;
+                    }
+                });
+                
+                const customers = Object.keys(customerTrans);
+                if (customers.length === 0) {
+                    resultsDiv.innerHTML = `<div class="search-result-item" onclick="App.showNewCustomerLedger('${query.trim()}')">
+                        <span><i class="fas fa-plus"></i> 新客户: ${query.trim()}</span>
+                    </div>`;
+                } else {
+                    resultsDiv.innerHTML = customers.map(c => {
+                        const info = customerTrans[c];
+                        const badgeClass = info.debt > 0 ? 'debt-badge' : 'paid-badge';
+                        const badgeText = info.debt > 0 ? `欠${info.debt.toFixed(0)}元` : '已清';
+                        return `<div class="search-result-item" onclick="App.showCustomerLedger('${c}')">
+                            <span><i class="fas fa-user"></i> ${c} (${info.count}笔)</span>
+                            <span class="${badgeClass}">${badgeText}</span>
+                        </div>`;
+                    }).join('');
+                }
+                resultsDiv.classList.add('show');
+            },
+            
+            showCustomerLedger(customerName) {
+                document.getElementById('searchResults').classList.remove('show');
+                document.getElementById('globalSearch').value = customerName;
+                
+                const customerTrans = this.transactions.filter(t => t.customer === customerName)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                let totalAmount = 0, totalPaid = 0, totalDebt = 0;
+                customerTrans.forEach(t => {
+                    totalAmount += t.actualAmount;
+                    totalPaid += t.paidAmount;
+                    totalDebt += t.debt;
+                });
+                
+                document.getElementById('ledgerTitle').innerHTML = `<i class="fas fa-book"></i> ${customerName}·往来全账簿`;
+                document.getElementById('ledgerTotal').textContent = totalAmount.toFixed(0) + '元';
+                document.getElementById('ledgerPaid').textContent = totalPaid.toFixed(0) + '元';
+                document.getElementById('ledgerDebt').textContent = totalDebt.toFixed(0) + '元';
+                
+                const tbody = document.getElementById('ledgerTableBody');
+                if (customerTrans.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 30px; color: #777;">暂无记录</td></tr>`;
+                } else {
+                    tbody.innerHTML = customerTrans.map(t => {
+                        const itemsBrief = t.items.map(i => i.name).join('、');
+                        const rowClass = t.debt > 0 ? 'unpaid-row' : '';
+                        const statusClass = t.debt > 0 ? 'status-unpaid' : 'status-paid';
+                        const statusText = t.debt > 0 ? '欠' + t.debt.toFixed(0) + '元' : '已清';
+                        
+                        return `<tr class="${rowClass}" onclick="App.openDetail(${t.id})">
+                            <td>${t.date}</td>
+                            <td class="items-cell">${itemsBrief}</td>
+                            <td class="amount-cell">${t.actualAmount.toFixed(0)}元</td>
+                            <td class="amount-cell">${t.paidAmount.toFixed(0)}元</td>
+                            <td class="status-cell"><span class="${statusClass}">${statusText}</span></td>
+                        </tr>`;
+                    }).join('');
+                }
+                
+                document.querySelectorAll('.main-content').forEach(c => c.classList.remove('active'));
+                document.getElementById('customerLedger').classList.add('active');
+            },
+            
+            showNewCustomerLedger(name) {
+                document.getElementById('searchResults').classList.remove('show');
+                this.openAddModal();
+                document.getElementById('customerInput').value = name;
+            },
+            
+            closeLedger() {
+                document.getElementById('customerLedger').classList.remove('active');
+                document.getElementById('today').classList.add('active');
+                document.querySelector('.main-tab[data-tab="today"]').classList.add('active');
+                document.getElementById('globalSearch').value = '';
+                this.updateTodayTable();
+            },
+            
+            getTodayStr() {
+                return new Date().toISOString().split('T')[0];
+            },
+            
+            getTodayTransactions() {
+                return this.transactions.filter(t => t.date === this.getTodayStr());
+            },
+            
+            updateTodayTable() {
+                const container = document.getElementById('dailySectionsContainer');
+                
+                if (this.transactions.length === 0) {
+                    container.innerHTML = `<div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>还没有记录<br>点击右下角 + 按钮记账</p>
+                    </div>`;
+                    return;
+                }
+                
+                const groupedByDate = {};
+                this.transactions.forEach(t => {
+                    if (!groupedByDate[t.date]) {
+                        groupedByDate[t.date] = [];
+                    }
+                    groupedByDate[t.date].push(t);
+                });
+                
+                const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
+                
+                let html = '';
+                sortedDates.slice(0, 10).forEach(date => {
+                    const dayTrans = groupedByDate[date];
+                    const summary = this.getDailySummary(date);
+                    const capital = this.dailyCapital[date] || 0;
+                    const profit = summary.totalActual - capital;
+                    const profitClass = profit >= 0 ? 'profit' : 'loss';
+                    const profitText = profit >= 0 ? `+${profit.toFixed(0)}` : profit.toFixed(0);
+                    
+                    const dateParts = date.split('-');
+                    const dateDisplay = `${dateParts[0]}年${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日`;
+                    const isToday = date === this.getTodayStr();
+                    const todayBadge = isToday ? '<span style="background:#2ec27e;padding:2px 8px;border-radius:10px;margin-left:10px;font-size:0.9em;">今天</span>' : '';
+                    
+                    html += `<div class="daily-section">
+                        <div class="daily-header">
+                            <span class="daily-date"><i class="fas fa-calendar-day"></i> ${dateDisplay}${todayBadge}</span>
+                            <div class="daily-stats">
+                                <span>${summary.count}单</span>
+                                <span>应收: ${summary.totalActual.toFixed(0)}元</span>
+                                <span>本金: ${capital.toFixed(0)}元</span>
+                                <span class="${profitClass}" style="font-weight: bold;">盈亏: ${profitText}元</span>
+                            </div>
+                        </div>
+                        <div class="daily-container">
+                            <div class="table-scroll" style="max-height: 300px;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 25%;">客户</th>
+                                            <th style="width: 25%;">货品</th>
+                                            <th style="width: 18%; text-align: right;">应收</th>
+                                            <th style="width: 18%; text-align: right;">已付</th>
+                                            <th style="width: 14%; text-align: center;">欠款</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+                    
+                    dayTrans.forEach(t => {
+                        const itemsBrief = t.items.map(i => i.name).join('、');
+                        const rowClass = t.debt > 0 ? 'unpaid-row' : '';
+                        
+                        html += `<tr class="${rowClass}" onclick="App.openDetail(${t.id})">
+                            <td class="customer-cell">${t.customer}</td>
+                            <td class="items-cell">${itemsBrief}</td>
+                            <td class="amount-cell">${t.actualAmount.toFixed(0)}元</td>
+                            <td class="amount-cell">${t.paidAmount.toFixed(0)}元</td>
+                            <td class="status-cell"><span class="${t.debt > 0 ? 'status-unpaid' : 'status-paid'}">${t.debt > 0 ? t.debt.toFixed(0) + '元' : '已清'}</span></td>
+                        </tr>`;
+                    });
+                    
+                    html += `</tbody></table></div>
+                            <div class="daily-footer">
+                                <div class="daily-footer-stats">
+                                    <div class="daily-footer-stat">
+                                        <div class="daily-footer-stat-label">应收总额</div>
+                                        <div class="daily-footer-stat-value">${summary.totalActual.toFixed(0)}元</div>
+                                    </div>
+                                    <div class="daily-footer-stat">
+                                        <div class="daily-footer-stat-label">已收现钱</div>
+                                        <div class="daily-footer-stat-value">${summary.totalPaid.toFixed(0)}元</div>
+                                    </div>
+                                    <div class="daily-footer-stat">
+                                        <div class="daily-footer-stat-label">新增欠款</div>
+                                        <div class="daily-footer-stat-value" style="color: var(--danger-color);">${summary.totalDebt.toFixed(0)}元</div>
+                                    </div>
+                                    <div class="capital-input-group">
+                                        <label>今日本金:</label>
+                                        <input type="number" id="capital_${date}" value="${capital}" 
+                                            onchange="App.saveCapital('${date}', this.value)" placeholder="0">
+                                        <span>元</span>
+                                    </div>
+                                    <div class="profit-display ${profitClass}">
+                                        <div class="daily-footer-stat-label">今日盈亏</div>
+                                        <div class="daily-footer-stat-value ${profitClass}">${profitText}元</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                
+                container.innerHTML = html;
+            },
+            
+            saveCapital(date, value) {
+                this.dailyCapital[date] = parseFloat(value) || 0;
+                this.saveToStorage();
+                this.updateTodayTable();
+            },
+            
+            getTotalSummary() {
+                return {
+                    count: this.transactions.length,
+                    totalActual: this.transactions.reduce((s, t) => s + t.actualAmount, 0),
+                    totalPaid: this.transactions.reduce((s, t) => s + t.paidAmount, 0),
+                    totalDebt: this.transactions.reduce((s, t) => s + t.debt, 0)
+                };
+            },
+            
+            getDailySummary(dateStr) {
+                const dayTrans = this.transactions.filter(t => t.date === dateStr);
+                return {
+                    count: dayTrans.length,
+                    totalActual: dayTrans.reduce((s, t) => s + t.actualAmount, 0),
+                    totalPaid: dayTrans.reduce((s, t) => s + t.paidAmount, 0),
+                    totalDebt: dayTrans.reduce((s, t) => s + t.debt, 0)
+                };
+            },
+            
+            getMonthlySummary(year, month) {
+                const monthTrans = this.transactions.filter(t => {
+                    const d = new Date(t.date);
+                    return d.getFullYear() === year && d.getMonth() === month;
+                });
+                return {
+                    count: monthTrans.length,
+                    totalActual: monthTrans.reduce((s, t) => s + t.actualAmount, 0),
+                    totalPaid: monthTrans.reduce((s, t) => s + t.paidAmount, 0),
+                    totalDebt: monthTrans.reduce((s, t) => s + t.debt, 0)
+                };
+            },
+            
+            getYearlySummary(year) {
+                const yearTrans = this.transactions.filter(t => {
+                    const d = new Date(t.date);
+                    return d.getFullYear() === year;
+                });
+                return {
+                    count: yearTrans.length,
+                    totalActual: yearTrans.reduce((s, t) => s + t.actualAmount, 0),
+                    totalDebt: yearTrans.reduce((s, t) => s + t.debt, 0)
+                };
+            },
+            
+            getYears() {
+                const years = {};
+                this.transactions.forEach(t => {
+                    const y = new Date(t.date).getFullYear();
+                    years[y] = true;
+                });
+                return Object.keys(years).map(Number).sort((a, b) => b - a);
+            },
+            
+            getMonthsInYear(year) {
+                const months = {};
+                this.transactions.forEach(t => {
+                    const d = new Date(t.date);
+                    if (d.getFullYear() === year) {
+                        months[d.getMonth() + 1] = true;
+                    }
+                });
+                return Object.keys(months).map(Number).sort((a, b) => b - a);
+            },
+            
+            getDaysInMonth(year, month) {
+                const days = {};
+                this.transactions.forEach(t => {
+                    const d = new Date(t.date);
+                    if (d.getFullYear() === year && d.getMonth() === month) {
+                        days[d.getDate()] = true;
+                    }
+                });
+                return Object.keys(days).map(Number).sort((a, b) => b - a);
+            },
+            
+            showYears() {
+                const years = this.getYears();
+                const container = document.getElementById('historyContent');
+                
+                if (years.length === 0) {
+                    container.innerHTML = `<div class="empty-state">
+                        <i class="fas fa-calendar-alt"></i>
+                        <p>暂无历史记录</p>
+                    </div>`;
+                    return;
+                }
+                
+                let html = `<button class="export-btn" onclick="App.exportAll()">
+                    <i class="fas fa-file-excel"></i> 导出全部Excel
+                </button>`;
+                
+                html += '<div class="nav-header"><div class="nav-path">选择年份</div></div>';
+                
+                years.forEach(y => {
+                    const summary = this.getYearlySummary(y);
+                    html += `<div class="level-card">
+                        <div class="level-item" onclick="App.showMonths(${y})">
+                            <span class="level-title">${y}年</span>
+                            <div class="level-stats">
+                                <div class="level-stat">
+                                    <div class="level-stat-label">应收</div>
+                                    <div class="level-stat-value income">${summary.totalActual.toFixed(0)}元</div>
+                                </div>
+                                <div class="level-stat">
+                                    <div class="level-stat-label">欠款</div>
+                                    <div class="level-stat-value debt">${summary.totalDebt.toFixed(0)}元</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right level-arrow"></i>
+                        </div>
+                    </div>`;
+                });
+                
+                container.innerHTML = html;
+            },
+            
+            showMonths(year) {
+                this.navLevel = 1;
+                this.navPath.year = year;
+                
+                const months = this.getMonthsInYear(year);
+                const container = document.getElementById('historyContent');
+                
+                let html = `<button class="export-btn" onclick="App.exportYear(${year})">
+                    <i class="fas fa-file-excel"></i> 导出${year}年Excel
+                </button>`;
+                
+                html += `<div class="nav-header">
+                    <button class="nav-back" onclick="App.showYears()">
+                        <i class="fas fa-arrow-left"></i> 返回
+                    </button>
+                    <div class="nav-path">${year}年</div>
+                </div>`;
+                
+                months.forEach(m => {
+                    const summary = this.getMonthlySummary(year, m - 1);
+                    html += `<div class="level-card">
+                        <div class="level-item" onclick="App.showDays(${year}, ${m})">
+                            <span class="level-title">${m}月</span>
+                            <div class="level-stats">
+                                <div class="level-stat">
+                                    <div class="level-stat-label">应收</div>
+                                    <div class="level-stat-value income">${summary.totalActual.toFixed(0)}元</div>
+                                </div>
+                                <div class="level-stat">
+                                    <div class="level-stat-label">欠款</div>
+                                    <div class="level-stat-value debt">${summary.totalDebt.toFixed(0)}元</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right level-arrow"></i>
+                        </div>
+                    </div>`;
+                });
+                
+                container.innerHTML = html;
+            },
+            
+            showDays(year, month) {
+                this.navLevel = 2;
+                this.navPath.month = month;
+                
+                const days = this.getDaysInMonth(year, month - 1);
+                const container = document.getElementById('historyContent');
+                
+                let html = `<button class="export-btn" onclick="App.exportMonth(${year}, ${month})">
+                    <i class="fas fa-file-excel"></i> 导出${month}月Excel
+                </button>`;
+                
+                html += `<div class="nav-header">
+                    <button class="nav-back" onclick="App.showMonths(${year})">
+                        <i class="fas fa-arrow-left"></i> 返回
+                    </button>
+                    <div class="nav-path">${year}年 > ${month}月</div>
+                </div>`;
+                
+                days.forEach(d => {
+                    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                    const summary = this.getDailySummary(dateStr);
+                    html += `<div class="level-card">
+                        <div class="level-item" onclick="App.showDayTable('${dateStr}')">
+                            <span class="level-title">${d}日</span>
+                            <div class="level-stats">
+                                <div class="level-stat">
+                                    <div class="level-stat-label">${summary.count}单</div>
+                                    <div class="level-stat-value income">${summary.totalActual.toFixed(0)}元</div>
+                                </div>
+                                <div class="level-stat">
+                                    <div class="level-stat-label">欠款</div>
+                                    <div class="level-stat-value debt">${summary.totalDebt.toFixed(0)}元</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right level-arrow"></i>
+                        </div>
+                    </div>`;
+                });
+                
+                container.innerHTML = html;
+            },
+            
+            showDayTable(dateStr) {
+                this.navLevel = 3;
+                this.navPath.day = dateStr;
+                
+                const [y, m, d] = dateStr.split('-');
+                const dayTrans = this.transactions.filter(t => t.date === dateStr);
+                const container = document.getElementById('historyContent');
+                
+                let html = `<button class="export-btn" onclick="App.exportDay('${dateStr}')">
+                    <i class="fas fa-file-excel"></i> 导出当日Excel
+                </button>`;
+                
+                html += `<div class="nav-header">
+                    <button class="nav-back" onclick="App.showDays(${y}, ${parseInt(m)})">
+                        <i class="fas fa-arrow-left"></i> 返回
+                    </button>
+                    <div class="nav-path">${y}年 > ${parseInt(m)}月 > ${parseInt(d)}日</div>
+                </div>`;
+                
+                html += `<div class="table-container">
+                    <div class="table-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 20%;">客户</th>
+                                    <th style="width: 30%;">货品</th>
+                                    <th style="width: 18%; text-align: right;">应收</th>
+                                    <th style="width: 18%; text-align: right;">已付</th>
+                                    <th style="width: 14%; text-align: center;">欠款</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                
+                if (dayTrans.length === 0) {
+                    html += `<tr><td colspan="5" style="text-align: center; padding: 30px; color: #777;">无记录</td></tr>`;
+                } else {
+                    dayTrans.forEach(t => {
+                        const itemsBrief = t.items.map(i => i.name).join('、');
+                        const rowClass = t.debt > 0 ? 'unpaid-row' : '';
+                        
+                        html += `<tr class="${rowClass}" onclick="App.openDetail(${t.id})">
+                            <td class="customer-cell">${t.customer}</td>
+                            <td class="items-cell">${itemsBrief}</td>
+                            <td class="amount-cell">${t.actualAmount.toFixed(0)}元</td>
+                            <td class="amount-cell">${t.paidAmount.toFixed(0)}元</td>
+                            <td class="status-cell"><span class="${t.debt > 0 ? 'status-unpaid' : 'status-paid'}">${t.debt > 0 ? t.debt.toFixed(0) + '元' : '已清'}</span></td>
+                        </tr>`;
+                    });
+                }
+                
+                html += `</tbody></table></div>`;
+                
+                const summary = this.getDailySummary(dateStr);
+                html += `<div class="table-footer">
+                    <div class="footer-stat">
+                        <div class="footer-stat-label">单数</div>
+                        <div class="footer-stat-value">${summary.count}</div>
+                    </div>
+                    <div class="footer-stat">
+                        <div class="footer-stat-label">应收</div>
+                        <div class="footer-stat-value">${summary.totalActual.toFixed(0)}元</div>
+                    </div>
+                    <div class="footer-stat">
+                        <div class="footer-stat-label">已付</div>
+                        <div class="footer-stat-value">${summary.totalPaid.toFixed(0)}元</div>
+                    </div>
+                    <div class="footer-stat">
+                        <div class="footer-stat-label">欠款</div>
+                        <div class="footer-stat-value">${summary.totalDebt.toFixed(0)}元</div>
+                    </div>
+                </div></div>`;
+                
+                container.innerHTML = html;
+            },
+            
+            openAddModal() {
+                document.getElementById('addModal').style.display = 'flex';
+                document.getElementById('addForm').reset();
+                document.getElementById('inputDate').value = this.getTodayStr();
+                document.getElementById('productRows').innerHTML = '';
+                this.currentProducts = [];
+                this.calculateTotal();
+            },
+            
+            addProductRow(productName) {
+                const existing = this.currentProducts.find(p => p.name === productName);
+                if (existing) return;
+                
+                const defaultPrice = this.defaultPrices[productName] || 10;
+                const product = { name: productName, weight: 0, price: defaultPrice, deduction: 0 };
+                this.currentProducts.push(product);
+                this.renderProductRows();
+            },
+            
+            renderProductRows() {
+                const container = document.getElementById('productRows');
+                let html = '';
+                
+                this.currentProducts.forEach((p, index) => {
+                    const rowTotal = (p.weight - p.deduction) * p.price;
+                    html += `<div class="product-row">
+                        <div class="product-row-header">
+                            <span class="product-row-name">${p.name}</span>
+                            <button type="button" class="product-row-delete" onclick="App.removeProductRow(${index})">
+                                <i class="fas fa-times"></i> 删除
+                            </button>
+                        </div>
+                        <div class="product-row-inputs">
+                            <div>
+                                <label>重量(斤)</label>
+                                <input type="number" step="0.1" min="0" value="${p.weight || ''}" 
+                                    onchange="App.updateProductField(${index}, 'weight', this.value)" placeholder="0">
+                            </div>
+                            <div>
+                                <label>单价(元)</label>
+                                <input type="number" step="0.1" min="0" value="${p.price || ''}" 
+                                    onchange="App.updateProductField(${index}, 'price', this.value)" placeholder="0">
+                            </div>
+                            <div>
+                                <label>减称(斤)</label>
+                                <input type="number" step="0.1" min="0" value="${p.deduction || ''}" 
+                                    onchange="App.updateProductField(${index}, 'deduction', this.value)" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="product-row-total">小计: ${rowTotal.toFixed(2)} 元</div>
+                    </div>`;
+                });
+                
+                container.innerHTML = html;
+                this.calculateTotal();
+            },
+            
+            removeProductRow(index) {
+                this.currentProducts.splice(index, 1);
+                this.renderProductRows();
+            },
+            
+            updateProductField(index, field, value) {
+                if (this.currentProducts[index]) {
+                    this.currentProducts[index][field] = parseFloat(value) || 0;
+                    if (field === 'price') {
+                        this.defaultPrices[this.currentProducts[index].name] = parseFloat(value) || 10;
+                        this.saveToStorage();
+                    }
+                    this.renderProductRows();
+                }
+            },
+            
+            calculateTotal() {
+                let totalPrice = 0;
+                this.currentProducts.forEach(p => {
+                    totalPrice += (p.weight - p.deduction) * p.price;
+                });
+                
+                const badMeat = parseFloat(document.getElementById('inputBadMeat').value) || 0;
+                const discount = parseFloat(document.getElementById('inputDiscount').value) || 0;
+                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+                
+                const actualAmount = totalPrice - badMeat - discount;
+                const debt = actualAmount - paid;
+                
+                document.getElementById('calcTotalPrice').textContent = totalPrice.toFixed(2) + ' 元';
+                document.getElementById('calcActualAmount').textContent = actualAmount.toFixed(2) + ' 元';
+                document.getElementById('calcDebt').textContent = debt.toFixed(2) + ' 元';
+            },
+            
+            showSuggestions(query) {
+                const div = document.getElementById('customerSuggestions');
+                if (!query) {
+                    div.classList.remove('show');
+                    return;
+                }
+                
+                const matches = this.customers.filter(c => c.includes(query));
+                if (matches.length === 0) {
+                    div.innerHTML = `<div class="suggestion-item" onclick="App.selectCustomer('${query}')">
+                        <i class="fas fa-plus"></i> 添加新客户: ${query}
+                    </div>`;
+                } else {
+                    div.innerHTML = matches.map(c => 
+                        `<div class="suggestion-item" onclick="App.selectCustomer('${c}')">${c}</div>`
+                    ).join('');
+                }
+                div.classList.add('show');
+            },
+            
+            selectCustomer(name) {
+                document.getElementById('customerInput').value = name;
+                document.getElementById('customerSuggestions').classList.remove('show');
+            },
+            
+            saveTransaction() {
+                const customer = document.getElementById('customerInput').value.trim();
+                const selectedDate = document.getElementById('inputDate').value || this.getTodayStr();
+                
+                if (!customer) {
+                    alert('请输入客户名');
+                    return;
+                }
+                
+                if (this.currentProducts.length === 0) {
+                    alert('请至少添加一种货品');
+                    return;
+                }
+                
+                let totalPrice = 0;
+                this.currentProducts.forEach(p => {
+                    totalPrice += (p.weight - p.deduction) * p.price;
+                });
+                
+                const badMeat = parseFloat(document.getElementById('inputBadMeat').value) || 0;
+                const discount = parseFloat(document.getElementById('inputDiscount').value) || 0;
+                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+                const actualAmount = totalPrice - badMeat - discount;
+                const debt = actualAmount - paid;
+                
+                const transaction = {
+                    id: Date.now(),
+                    date: selectedDate,
+                    customer,
+                    items: this.currentProducts.map(p => ({
+                        name: p.name,
+                        weight: p.weight,
+                        price: p.price,
+                        deduction: p.deduction,
+                        subtotal: (p.weight - p.deduction) * p.price
+                    })),
+                    totalPrice,
+                    badMeat,
+                    discount,
+                    actualAmount,
+                    paidAmount: paid,
+                    debt
+                };
+                
+                this.transactions.unshift(transaction);
+                
+                if (!this.customers.includes(customer)) {
+                    this.customers.unshift(customer);
+                }
+                
+                this.saveToStorage();
+                closeAddModal();
+                this.updateTodayTable();
+                
+                alert(`保存成功！\n客户: ${customer}\n实际应收: ${actualAmount.toFixed(2)}元\n已付: ${paid.toFixed(2)}元\n欠款: ${debt.toFixed(2)}元`);
+            },
+            
+            openDetail(id) {
+                const t = this.transactions.find(tr => tr.id === id);
+                if (!t) return;
+                
+                this.currentTransactionId = id;
+                this.editMode = false;
+                this.editProducts = [];
+                
+                document.getElementById('detailTitle').textContent = t.customer + ' - ' + t.date;
+                document.getElementById('detailDate').textContent = t.date;
+                document.getElementById('editDate').value = t.date;
+                document.getElementById('detailCustomer').textContent = t.customer;
+                
+                this.renderDetailItems(t.items, false);
+                
+                document.getElementById('detailTotalPrice').textContent = t.totalPrice.toFixed(2) + ' 元';
+                document.getElementById('editBadMeat').value = t.badMeat;
+                document.getElementById('editDiscount').value = t.discount;
+                document.getElementById('editPaid').value = t.paidAmount;
+                document.getElementById('detailActualAmount').textContent = t.actualAmount.toFixed(2) + ' 元';
+                document.getElementById('detailDebt').textContent = t.debt.toFixed(2) + ' 元';
+                document.getElementById('inputAddPayment').value = '';
+                
+                document.getElementById('detailInfoSection').classList.remove('edit-mode');
+                document.getElementById('detailItemsSection').classList.remove('edit-mode');
+                document.getElementById('detailCalcSection').classList.remove('edit-mode');
+                
+                document.getElementById('detailDateRow').style.display = 'flex';
+                document.getElementById('editDateGroup').style.display = 'none';
+                document.getElementById('editBadMeat').readOnly = true;
+                document.getElementById('editBadMeat').classList.remove('editable');
+                document.getElementById('editDiscount').readOnly = true;
+                document.getElementById('editDiscount').classList.remove('editable');
+                document.getElementById('editPaid').readOnly = true;
+                document.getElementById('editPaid').classList.remove('editable');
+                
+                document.getElementById('paymentSection').style.display = 'block';
+                document.getElementById('actionBtns').style.display = 'flex';
+                document.getElementById('editActionBtns').style.display = 'none';
+                document.getElementById('editBtn').style.display = 'block';
+                
+                document.getElementById('detailModal').style.display = 'flex';
+            },
+            
+            renderDetailItems(items, editable) {
+                const container = document.getElementById('detailItems');
+                
+                if (!editable) {
+                    let html = '';
+                    items.forEach((item, idx) => {
+                        html += `<div class="detail-item-row">
+                            <span>${item.name}: ${item.weight}斤 × ${item.price}元 - 减${item.deduction}斤</span>
+                            <span>${item.subtotal.toFixed(2)}元</span>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    let html = '';
+                    items.forEach((item, idx) => {
+                        html += `<div class="product-row edit-mode">
+                            <div class="product-row-header">
+                                <span class="product-row-name">${item.name}</span>
+                            </div>
+                            <div class="product-row-inputs">
+                                <div>
+                                    <label>重量(斤)</label>
+                                    <input type="number" step="0.1" min="0" value="${item.weight}" 
+                                        onchange="App.updateEditProductField(${idx}, 'weight', this.value)" class="editable">
+                                </div>
+                                <div>
+                                    <label>单价(元)</label>
+                                    <input type="number" step="0.1" min="0" value="${item.price}" 
+                                        onchange="App.updateEditProductField(${idx}, 'price', this.value)" class="editable">
+                                </div>
+                                <div>
+                                    <label>减称(斤)</label>
+                                    <input type="number" step="0.1" min="0" value="${item.deduction}" 
+                                        onchange="App.updateEditProductField(${idx}, 'deduction', this.value)" class="editable">
+                                </div>
+                            </div>
+                            <div class="product-row-total">小计: ${item.subtotal.toFixed(2)} 元</div>
+                        </div>`;
+                    });
+                    container.innerHTML = html;
+                }
+            },
+            
+            updateEditProductField(index, field, value) {
+                if (this.editProducts[index]) {
+                    this.editProducts[index][field] = parseFloat(value) || 0;
+                    this.editProducts[index].subtotal = (this.editProducts[index].weight - this.editProducts[index].deduction) * this.editProducts[index].price;
+                    this.renderDetailItems(this.editProducts, true);
+                    this.calculateEditTotal();
+                }
+            },
+            
+            calculateEditTotal() {
+                let totalPrice = 0;
+                this.editProducts.forEach(p => {
+                    totalPrice += (p.weight - p.deduction) * p.price;
+                });
+                
+                const badMeat = parseFloat(document.getElementById('editBadMeat').value) || 0;
+                const discount = parseFloat(document.getElementById('editDiscount').value) || 0;
+                const paid = parseFloat(document.getElementById('editPaid').value) || 0;
+                
+                const actualAmount = totalPrice - badMeat - discount;
+                const debt = actualAmount - paid;
+                
+                document.getElementById('detailTotalPrice').textContent = totalPrice.toFixed(2) + ' 元';
+                document.getElementById('detailActualAmount').textContent = actualAmount.toFixed(2) + ' 元';
+                document.getElementById('detailDebt').textContent = debt.toFixed(2) + ' 元';
+            },
+            
+            enterEditMode() {
+                const t = this.transactions.find(tr => tr.id === this.currentTransactionId);
+                if (!t) return;
+                
+                this.editMode = true;
+                this.editProducts = JSON.parse(JSON.stringify(t.items));
+                
+                this.renderDetailItems(this.editProducts, true);
+                
+                document.getElementById('detailInfoSection').classList.add('edit-mode');
+                document.getElementById('detailItemsSection').classList.add('edit-mode');
+                document.getElementById('detailCalcSection').classList.add('edit-mode');
+                
+                document.getElementById('detailDateRow').style.display = 'none';
+                document.getElementById('editDateGroup').style.display = 'block';
+                document.getElementById('editBadMeat').readOnly = false;
+                document.getElementById('editBadMeat').classList.add('editable');
+                document.getElementById('editDiscount').readOnly = false;
+                document.getElementById('editDiscount').classList.add('editable');
+                document.getElementById('editPaid').readOnly = false;
+                document.getElementById('editPaid').classList.add('editable');
+                
+                document.getElementById('paymentSection').style.display = 'none';
+                document.getElementById('actionBtns').style.display = 'none';
+                document.getElementById('editActionBtns').style.display = 'flex';
+                document.getElementById('editBtn').style.display = 'none';
+            },
+            
+            saveEdit() {
+                const t = this.transactions.find(tr => tr.id === this.currentTransactionId);
+                if (!t) return;
+                
+                const newDate = document.getElementById('editDate').value || t.date;
+                
+                let totalPrice = 0;
+                this.editProducts.forEach(p => {
+                    totalPrice += (p.weight - p.deduction) * p.price;
+                });
+                
+                const badMeat = parseFloat(document.getElementById('editBadMeat').value) || 0;
+                const discount = parseFloat(document.getElementById('editDiscount').value) || 0;
+                const paid = parseFloat(document.getElementById('editPaid').value) || 0;
+                const actualAmount = totalPrice - badMeat - discount;
+                const debt = actualAmount - paid;
+                
+                t.date = newDate;
+                t.items = this.editProducts.map(p => ({
+                    name: p.name,
+                    weight: p.weight,
+                    price: p.price,
+                    deduction: p.deduction,
+                    subtotal: (p.weight - p.deduction) * p.price
+                }));
+                t.totalPrice = totalPrice;
+                t.badMeat = badMeat;
+                t.discount = discount;
+                t.actualAmount = actualAmount;
+                t.paidAmount = paid;
+                t.debt = debt;
+                
+                this.saveToStorage();
+                this.editMode = false;
+                closeDetailModal();
+                this.updateTodayTable();
+                
+                if (this.navLevel === 3) {
+                    this.showDayTable(this.navPath.day);
+                }
+                
+                alert('修改成功！\n实际应收: ' + actualAmount.toFixed(2) + '元\n欠款: ' + debt.toFixed(2) + '元');
+            },
+            
+            cancelEdit() {
+                this.editMode = false;
+                this.editProducts = [];
+                closeDetailModal();
+                this.openDetail(this.currentTransactionId);
+            },
+            
+            savePayment() {
+                const t = this.transactions.find(tr => tr.id === this.currentTransactionId);
+                if (!t) return;
+                
+                const addPayment = parseFloat(document.getElementById('inputAddPayment').value) || 0;
+                
+                if (addPayment <= 0) {
+                    alert('请输入有效的回款金额');
+                    return;
+                }
+                
+                this.showConfirm(
+                    '<i class="fas fa-hand-holding-usd"></i> 确认回款',
+                    `确定登记回款 ${addPayment.toFixed(2)} 元吗？`,
+                    () => {
+                        t.paidAmount += addPayment;
+                        t.debt = t.actualAmount - t.paidAmount;
+                        if (t.debt < 0) t.debt = 0;
+                        
+                        this.saveToStorage();
+                        closeDetailModal();
+                        this.updateTodayTable();
+                        
+                        if (this.navLevel === 3) {
+                            this.showDayTable(this.navPath.day);
+                        }
+                        
+                        alert(`回款登记成功！\n新增回款: ${addPayment.toFixed(2)}元\n当前欠款: ${t.debt.toFixed(2)}元`);
+                    }
+                );
+            },
+            
+            confirmDelete() {
+                const t = this.transactions.find(tr => tr.id === this.currentTransactionId);
+                if (!t) return;
+                
+                this.showConfirm(
+                    '<i class="fas fa-exclamation-triangle"></i> 确认删除',
+                    `确定要永久删除「${t.customer}」的这条记录吗？\n此操作不可恢复！`,
+                    () => {
+                        this.transactions = this.transactions.filter(tr => tr.id !== this.currentTransactionId);
+                        this.saveToStorage();
+                        closeDetailModal();
+                        this.updateTodayTable();
+                        
+                        if (this.navLevel === 3) {
+                            this.showDayTable(this.navPath.day);
+                        }
+                    }
+                );
+            },
+            
+            deleteTransaction() {
+                this.confirmDelete();
+            },
+            
+            updateCustomerList() {
+                const listEl = document.getElementById('customerList');
+                document.getElementById('customerCount').textContent = this.customers.length;
+                
+                if (this.customers.length === 0) {
+                    listEl.innerHTML = `<div class="empty-state" style="padding: 30px;">
+                        <i class="fas fa-user-slash"></i>
+                        <p>暂无客户</p>
+                    </div>`;
+                    return;
+                }
+                
+                let html = '';
+                this.customers.forEach((customer, index) => {
+                    html += `<div class="customer-item">
+                        <span class="customer-name">
+                            <i class="fas fa-user"></i> ${customer}
+                        </span>
+                        <button class="customer-delete-btn" onclick="App.deleteCustomer(${index})">
+                            <i class="fas fa-trash"></i> 删除
+                        </button>
+                    </div>`;
+                });
+                listEl.innerHTML = html;
+            },
+            
+            deleteCustomer(index) {
+                const customerName = this.customers[index];
+                this.showConfirm(
+                    '<i class="fas fa-user-minus"></i> 删除客户',
+                    `确定删除客户「${customerName}」吗？\n该客户的历史交易记录将保留。`,
+                    () => {
+                        this.customers.splice(index, 1);
+                        this.saveToStorage();
+                        this.updateCustomerList();
+                    }
+                );
+            },
+            
+            addNewCustomer() {
+                const input = document.getElementById('newCustomerInput');
+                const name = input.value.trim();
+                
+                if (!name) {
+                    alert('请输入客户名称');
+                    return;
+                }
+                
+                if (this.customers.includes(name)) {
+                    alert('该客户已存在');
+                    return;
+                }
+                
+                this.customers.unshift(name);
+                this.saveToStorage();
+                input.value = '';
+                this.updateCustomerList();
+                alert(`客户「${name}」添加成功！`);
+            },
+            
+            clearTestData() {
+                this.showConfirm(
+                    '<i class="fas fa-broom"></i> 清空数据',
+                    '确定清空所有测试数据吗？\n这将删除所有交易记录和客户名单！',
+                    () => {
+                        this.showConfirm(
+                            '<i class="fas fa-exclamation-triangle"></i> 再次确认',
+                            '此操作不可恢复！确定继续吗？',
+                            () => {
+                                this.transactions = [];
+                                this.customers = [];
+                                this.dailyCapital = {};
+                                this.saveToStorage();
+                                this.updateCustomerList();
+                                this.updateTodayTable();
+                                alert('测试数据已清空！');
+                            }
+                        );
+                    }
+                );
+            },
+            
+            backupData() {
+                const backupData = {
+                    transactions: this.transactions,
+                    customers: this.customers,
+                    dailyCapital: this.dailyCapital,
+                    defaultPrices: this.defaultPrices,
+                    backupDate: new Date().toISOString(),
+                    version: '1.0'
+                };
+                
+                const jsonString = JSON.stringify(backupData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                const today = this.getTodayStr();
+                a.download = `猪肉记账备份_${today}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                alert(`备份成功！\n文件已下载：猪肉记账备份_${today}.json\n请妥善保管此文件，换手机时可用于还原数据。`);
+            },
+            
+            restoreData(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (!data.transactions || !data.customers) {
+                            alert('无效的备份文件！\n请选择正确的猪肉记账备份文件。');
+                            return;
+                        }
+                        
+                        this.showConfirm(
+                            '<i class="fas fa-upload"></i> 还原数据',
+                            `确定要还原备份数据吗？\n备份日期：${data.backupDate || '未知'}\n交易记录：${data.transactions.length} 条\n客户数量：${data.customers.length} 位\n\n注意：当前数据将被覆盖！`,
+                            () => {
+                                this.transactions = data.transactions || [];
+                                this.customers = data.customers || [];
+                                this.dailyCapital = data.dailyCapital || {};
+                                if (data.defaultPrices) {
+                                    this.defaultPrices = { ...this.defaultPrices, ...data.defaultPrices };
+                                }
+                                this.saveToStorage();
+                                this.updateCustomerList();
+                                this.updateTodayTable();
+                                alert('数据还原成功！\n所有交易记录和客户信息已恢复。');
+                            }
+                        );
+                    } catch (error) {
+                        alert('文件解析失败！\n请确保选择的是有效的JSON备份文件。');
+                    }
+                };
+                reader.readAsText(file);
+                event.target.value = '';
+            },
+            
+            exportToday() {
+                const todayTrans = this.getTodayTransactions();
+                if (todayTrans.length === 0) {
+                    alert('今天没有记录可导出');
+                    return;
+                }
+                this.exportToExcel(todayTrans, `今日账单_${this.getTodayStr()}`);
+            },
+            
+            exportAll() {
+                if (this.transactions.length === 0) {
+                    alert('没有记录可导出');
+                    return;
+                }
+                this.exportToExcel(this.transactions, '全部账单');
+            },
+            
+            exportYear(year) {
+                const yearTrans = this.transactions.filter(t => {
+                    const d = new Date(t.date);
+                    return d.getFullYear() === year;
+                });
+                if (yearTrans.length === 0) {
+                    alert('该年份没有记录');
+                    return;
+                }
+                this.exportToExcel(yearTrans, `${year}年账单`);
+            },
+            
+            exportMonth(year, month) {
+                const monthTrans = this.transactions.filter(t => {
+                    const d = new Date(t.date);
+                    return d.getFullYear() === year && d.getMonth() === month - 1;
+                });
+                if (monthTrans.length === 0) {
+                    alert('该月份没有记录');
+                    return;
+                }
+                this.exportMonthlyReport(monthTrans, year, month);
+            },
+            
+            exportMonthlyReport(data, year, month) {
+                const dailyData = {};
+                data.forEach(t => {
+                    if (!dailyData[t.date]) {
+                        dailyData[t.date] = { capital: 0, actualAmount: 0, paid: 0, debt: 0 };
+                    }
+                    dailyData[t.date].actualAmount += t.actualAmount;
+                    dailyData[t.date].paid += t.paidAmount;
+                    dailyData[t.date].debt += t.debt;
+                });
+                
+                Object.keys(this.dailyCapital).forEach(date => {
+                    const d = new Date(date);
+                    if (d.getFullYear() === year && d.getMonth() === month - 1) {
+                        if (dailyData[date]) {
+                            dailyData[date].capital = this.dailyCapital[date];
+                        }
+                    }
+                });
+                
+                const rows = [['日期', '今日总本金(元)', '今日实际应收(元)', '今日盈亏(元)', '今日已付(元)', '今日新增欠款(元)']];
+                
+                const sortedDates = Object.keys(dailyData).sort();
+                let totalCapital = 0, totalActual = 0, totalProfit = 0, totalPaid = 0, totalDebt = 0;
+                
+                sortedDates.forEach(date => {
+                    const d = dailyData[date];
+                    const profit = d.actualAmount - d.capital;
+                    totalCapital += d.capital;
+                    totalActual += d.actualAmount;
+                    totalProfit += profit;
+                    totalPaid += d.paid;
+                    totalDebt += d.debt;
+                    
+                    const dateParts = date.split('-');
+                    const dateDisplay = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日`;
+                    
+                    rows.push([
+                        dateDisplay,
+                        d.capital.toFixed(2),
+                        d.actualAmount.toFixed(2),
+                        profit.toFixed(2),
+                        d.paid.toFixed(2),
+                        d.debt.toFixed(2)
+                    ]);
+                });
+                
+                rows.push([]);
+                rows.push(['月度总账', totalCapital.toFixed(2), totalActual.toFixed(2), totalProfit.toFixed(2), totalPaid.toFixed(2), totalDebt.toFixed(2)]);
+                
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, '月报表');
+                
+                ws['!cols'] = [
+                    { wch: 12 },
+                    { wch: 16 },
+                    { wch: 18 },
+                    { wch: 14 },
+                    { wch: 14 },
+                    { wch: 18 }
+                ];
+                
+                XLSX.writeFile(wb, `${year}年${month}月报表.xlsx`);
+            },
+            
+            exportDay(dateStr) {
+                const dayTrans = this.transactions.filter(t => t.date === dateStr);
+                if (dayTrans.length === 0) {
+                    alert('该日期没有记录');
+                    return;
+                }
+                this.exportToExcel(dayTrans, `账单_${dateStr}`);
+            },
+            
+            exportToExcel(data, filename) {
+                const rows = [['客户', '货品明细', '总重(斤)', '烂肉(元)', '抹零(元)', '实际应收(元)', '已支付(元)', '欠款(元)', '日期']];
+                
+                data.forEach(t => {
+                    const itemsDetail = t.items.map(i => 
+                        `${i.name}(${i.weight}斤×${i.price}元-减${i.deduction}斤=${i.subtotal.toFixed(2)}元)`
+                    ).join('; ');
+                    
+                    const totalWeight = t.items.reduce((s, i) => s + i.weight, 0);
+                    
+                    rows.push([
+                        t.customer,
+                        itemsDetail,
+                        totalWeight.toFixed(2),
+                        t.badMeat.toFixed(2),
+                        t.discount.toFixed(2),
+                        t.actualAmount.toFixed(2),
+                        t.paidAmount.toFixed(2),
+                        t.debt.toFixed(2),
+                        t.date
+                    ]);
+                });
+                
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, '账单');
+                
+                const colWidths = [
+                    { wch: 10 },
+                    { wch: 50 },
+                    { wch: 10 },
+                    { wch: 10 },
+                    { wch: 10 },
+                    { wch: 12 },
+                    { wch: 12 },
+                    { wch: 10 },
+                    { wch: 12 }
+                ];
+                ws['!cols'] = colWidths;
+                
+                XLSX.writeFile(wb, `${filename}.xlsx`);
+            }
+        };
+        
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+            document.getElementById('customerSuggestions').classList.remove('show');
+        }
+        
+        function closeDetailModal() {
+            document.getElementById('detailModal').style.display = 'none';
+            App.editMode = false;
+            App.editProducts = [];
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => App.init());
+    </script>
+</body>
+</html>
