@@ -430,7 +430,7 @@
             font-size: 2rem;
             cursor: pointer;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            z-index: 100;
+            z-index: 100000;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -438,7 +438,8 @@
         }
         
         .quick-add-btn.hidden {
-            bottom: -100px;
+            bottom: -100px !important;
+            pointer-events: none;
         }
         
         .quick-add-btn:hover {
@@ -453,7 +454,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
+            z-index: 10000;
             align-items: center;
             justify-content: center;
             overflow-y: auto;
@@ -923,7 +924,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.6);
-            z-index: 2000;
+            z-index: 10001;
             align-items: center;
             justify-content: center;
         }
@@ -1977,12 +1978,12 @@
                         dayTrans.forEach(t => {
                             const itemsBrief = t.items.map(i => i.name).join('、');
                             const rowClass = t.debt > 0 ? 'unpaid-row' : '';
-                            const isSelected = this.selectedIds.includes(t.id);
+                            const isSelected = this.selectedIds.some(sid => sid === t.id || sid == t.id);
                             
                             html += `<tr class="${rowClass}" 
-                                ${this.manageMode ? '' : `onclick="App.openDetail(${t.id})"`}
-                                ${this.manageMode ? `oncontextmenu="App.longPressSelect(${t.id}); return false;"` : ''}>
-                                ${this.manageMode ? `<td class="checkbox-cell"><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="App.toggleSelect(${t.id})"></td>` : ''}
+                                ${this.manageMode ? '' : `onclick="App.openDetail('${t.id}')"`}
+                                ${this.manageMode ? `oncontextmenu="App.longPressSelect('${t.id}'); return false;"` : ''}>
+                                ${this.manageMode ? `<td class="checkbox-cell"><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="App.toggleSelect('${t.id}')"></td>` : ''}
                                 <td class="customer-cell">${t.customer}</td>
                                 <td class="items-cell">${itemsBrief}</td>
                                 <td class="amount-cell">${t.actualAmount.toFixed(0)}元</td>
@@ -2043,10 +2044,12 @@
                 this.selectedIds = [];
                 if (this.manageMode) {
                     document.body.style.paddingBottom = '200px';
+                    document.getElementById('quickAddBtn').classList.add('hidden');
                     this.updateTodayTable();
                     document.getElementById('batchActions').querySelector('.btn-secondary').onclick = () => this.cancelManageMode();
                 } else {
                     document.body.style.paddingBottom = '120px';
+                    document.getElementById('quickAddBtn').classList.remove('hidden');
                     this.updateTodayTable();
                 }
             },
@@ -2055,11 +2058,13 @@
                 this.manageMode = false;
                 this.selectedIds = [];
                 document.body.style.paddingBottom = '120px';
+                document.getElementById('batchActions').classList.remove('show');
+                document.getElementById('quickAddBtn').classList.remove('hidden');
                 this.updateTodayTable();
             },
             
             toggleSelect(id) {
-                const index = this.selectedIds.indexOf(id);
+                const index = this.selectedIds.findIndex(sid => sid === id || sid == id);
                 if (index > -1) {
                     this.selectedIds.splice(index, 1);
                 } else {
@@ -2070,7 +2075,7 @@
             toggleAllDay(date, checked) {
                 const dayTrans = this.transactions.filter(t => t.date === date);
                 dayTrans.forEach(t => {
-                    const index = this.selectedIds.indexOf(t.id);
+                    const index = this.selectedIds.findIndex(sid => sid === t.id || sid == t.id);
                     if (checked && index === -1) {
                         this.selectedIds.push(t.id);
                     } else if (!checked && index > -1) {
@@ -2093,15 +2098,15 @@
                     return;
                 }
                 
+                const idsToDelete = [...this.selectedIds];
+                
                 this.showConfirm(
                     '<i class="fas fa-exclamation-triangle"></i> 批量删除确认',
-                    `确定要删除选中的 ${this.selectedIds.length} 条记录吗？\n此操作不可恢复！`,
+                    `确定要删除选中的 ${idsToDelete.length} 条记录吗？\n此操作不可恢复！`,
                     () => {
-                        this.transactions = this.transactions.filter(t => !this.selectedIds.includes(t.id));
+                        this.transactions = this.transactions.filter(t => !idsToDelete.some(id => id === t.id || id == t.id));
                         this.saveToStorage();
-                        this.selectedIds = [];
-                        this.manageMode = false;
-                        this.updateTodayTable();
+                        this.cancelManageMode();
                         alert('删除成功！');
                     }
                 );
@@ -2597,7 +2602,7 @@
             },
             
             openDetail(id) {
-                const t = this.transactions.find(tr => tr.id === id);
+                const t = this.transactions.find(tr => tr.id === id || tr.id == id);
                 if (!t) return;
                 
                 this.currentTransactionId = id;
@@ -2909,19 +2914,30 @@
             
             clearTestData() {
                 this.showConfirm(
-                    '<i class="fas fa-broom"></i> 清空数据',
-                    '确定清空所有测试数据吗？\n这将删除所有交易记录和客户名单！',
+                    '<i class="fas fa-broom"></i> 清空所有数据',
+                    '⚠️ 危险操作！\n\n将删除：\n• 所有交易记录\n• 所有客户名单\n• 所有本金记录\n• 所有自定义价格\n\n此操作不可恢复！',
                     () => {
                         this.showConfirm(
-                            '<i class="fas fa-exclamation-triangle"></i> 再次确认',
-                            '此操作不可恢复！确定继续吗？',
+                            '<i class="fas fa-exclamation-triangle"></i> 最终确认',
+                            '真的要清空所有数据吗？\n请确保已导出备份！',
                             () => {
                                 localStorage.removeItem('pigTransactions');
                                 localStorage.removeItem('pigCustomers');
                                 localStorage.removeItem('pigDailyCapital');
                                 localStorage.removeItem('pigDefaultPrices');
-                                alert('所有账单和客户资料已彻底清空！');
-                                location.reload();
+                                this.transactions = [];
+                                this.customers = [];
+                                this.dailyCapital = {};
+                                this.defaultPrices = {
+                                    '前腿肉': 10, '后腿肉': 10, '五花肉': 10, '筒子骨': 10,
+                                    '排骨': 13.5, '杂骨': 9.5, '猪脚': 10, '白条': 9.5,
+                                    '腰花': 15, '板油': 10, '猪头': 8, '猪尾': 12,
+                                    '肚子': 12, '肠子': 8, '心': 10, '舌': 12, '肝': 8
+                                };
+                                this.saveToStorage();
+                                this.updateTodayTable();
+                                this.updateCustomerList();
+                                alert('所有数据已彻底清空！');
                             }
                         );
                     }
