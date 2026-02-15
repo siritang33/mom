@@ -1199,6 +1199,8 @@
             padding: 20px;
             box-shadow: var(--shadow);
             margin-bottom: 15px;
+            position: relative;
+            z-index: 10;
         }
         
         .cleanup-section h4 {
@@ -2882,13 +2884,11 @@
                             '<i class="fas fa-exclamation-triangle"></i> 再次确认',
                             '此操作不可恢复！确定继续吗？',
                             () => {
-                                this.transactions = [];
-                                this.customers = [];
-                                this.dailyCapital = {};
-                                this.saveToStorage();
-                                this.updateCustomerList();
-                                this.updateTodayTable();
-                                alert('测试数据已清空！');
+                                localStorage.removeItem('pigTransactions');
+                                localStorage.removeItem('pigCustomers');
+                                localStorage.removeItem('pigDailyCapital');
+                                localStorage.removeItem('pigDefaultPrices');
+                                location.reload();
                             }
                         );
                     }
