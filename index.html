@@ -1314,6 +1314,23 @@
                 </button>
             </div>
             
+            <div id="totalStatsSection" class="detail-section" style="background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%); margin-bottom: 15px; border: 2px solid var(--primary-color);">
+                <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
+                    <div style="text-align: center; padding: 10px;">
+                        <div style="font-size: 0.9rem; color: #666;">总整猪（白条）</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                            <span id="totalPigCount">0</span> 头 | <span id="totalPigWeight">0</span> 斤
+                        </div>
+                    </div>
+                    <div style="text-align: center; padding: 10px;">
+                        <div style="font-size: 0.9rem; color: #666;">总猪头</div>
+                        <div style="font-size: 1.5rem; font-weight: bold; color: var(--purple-color);">
+                            <span id="totalPigHeadCount">0</span> 个 | <span id="totalPigHeadWeight">0</span> 斤
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div id="dailySectionsContainer">
             </div>
         </div>
@@ -1470,10 +1487,45 @@
                         <button type="button" class="product-btn secondary" data-product="心">心</button>
                         <button type="button" class="product-btn secondary" data-product="舌">舌</button>
                         <button type="button" class="product-btn secondary" data-product="肝">肝</button>
+                        <button type="button" class="product-btn secondary" data-product="小肚">小肚</button>
+                        <button type="button" class="product-btn secondary" data-product="渣子">渣子</button>
+                        <button type="button" class="product-btn secondary" data-product="汽泡油">汽泡油</button>
+                        <button type="button" class="product-btn secondary" data-product="槽头">槽头</button>
+                        <button type="button" class="product-btn secondary" data-product="泡泡油">泡泡油</button>
+                        <button type="button" class="product-btn secondary" data-product="子皮">子皮</button>
+                        <button type="button" class="product-btn secondary" data-product="子肠">子肠</button>
+                        <button type="button" class="product-btn secondary" data-product="小肠">小肠</button>
+                        <button type="button" class="product-btn secondary" data-product="花油">花油</button>
                     </div>
                 </div>
                 
                 <div class="product-rows" id="productRows">
+                </div>
+                
+                <div class="calc-section" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border-color: var(--primary-color);">
+                    <div style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;">
+                        <i class="fas fa-piggy-bank"></i> 白条与猪头统计
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>白条头数 (头)</label>
+                            <input type="number" id="inputPigCount" min="0" value="0" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>白条总斤数</label>
+                            <input type="number" id="inputPigWeight" step="0.1" min="0" value="0" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>猪头个数 (个)</label>
+                            <input type="number" id="inputPigHeadCount" min="0" value="0" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>猪头总斤数</label>
+                            <input type="number" id="inputPigHeadWeight" step="0.1" min="0" value="0" placeholder="0">
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="calc-section">
@@ -1535,6 +1587,39 @@
                 <div class="detail-row">
                     <span class="detail-label">客户</span>
                     <span class="detail-value" id="detailCustomer">-</span>
+                </div>
+            </div>
+            
+            <div class="detail-section" id="detailPigStatsSection" style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);">
+                <div class="detail-row">
+                    <span class="detail-label">白条</span>
+                    <span class="detail-value" id="detailPigStats">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">猪头</span>
+                    <span class="detail-value" id="detailPigHeadStats">-</span>
+                </div>
+                <div id="editPigStatsGroup" style="display: none; margin-top: 10px;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>白条头数</label>
+                            <input type="number" id="editPigCount" min="0" class="editable" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>白条斤数</label>
+                            <input type="number" id="editPigWeight" step="0.1" min="0" class="editable" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>猪头个数</label>
+                            <input type="number" id="editPigHeadCount" min="0" class="editable" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>猪头斤数</label>
+                            <input type="number" id="editPigHeadWeight" step="0.1" min="0" class="editable" placeholder="0">
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -1633,7 +1718,17 @@
                 '前腿肉': 10, '后腿肉': 10, '五花肉': 10, '筒子骨': 10,
                 '排骨': 13.5, '杂骨': 9.5, '猪脚': 10, '白条': 9.5,
                 '腰花': 15, '板油': 10, '猪头': 8, '猪尾': 12,
-                '肚子': 12, '肠子': 8, '心': 10, '舌': 12, '肝': 8
+                '肚子': 12, '肠子': 8, '心': 10, '舌': 12, '肝': 8,
+                '小肚': 3, '渣子': 0.8, '汽泡油': 1.5, '槽头': 2,
+                '泡泡油': 2, '子皮': 8, '子肠': 6, '小肠': 10, '花油': 4
+            },
+            defaultUnits: {
+                '前腿肉': '斤', '后腿肉': '斤', '五花肉': '斤', '筒子骨': '斤',
+                '排骨': '斤', '杂骨': '斤', '猪脚': '斤', '白条': '斤',
+                '腰花': '斤', '板油': '斤', '猪头': '斤', '猪尾': '斤',
+                '肚子': '斤', '肠子': '斤', '心': '斤', '舌': '斤', '肝': '斤',
+                '小肚': '个', '渣子': '斤', '汽泡油': '斤', '槽头': '斤',
+                '泡泡油': '斤', '子皮': '斤', '子肠': '斤', '小肠': '副', '花油': '副'
             },
             currentProducts: [],
             currentTransactionId: null,
@@ -1822,9 +1917,9 @@
                 });
                 
                 document.getElementById('ledgerTitle').innerHTML = `<i class="fas fa-book"></i> ${customerName}·往来全账簿`;
-                document.getElementById('ledgerTotal').textContent = totalAmount.toFixed(0) + '元';
-                document.getElementById('ledgerPaid').textContent = totalPaid.toFixed(0) + '元';
-                document.getElementById('ledgerDebt').textContent = totalDebt.toFixed(0) + '元';
+                document.getElementById('ledgerTotal').textContent = totalAmount + '元';
+                document.getElementById('ledgerPaid').textContent = totalPaid + '元';
+                document.getElementById('ledgerDebt').textContent = totalDebt + '元';
                 
                 const tbody = document.getElementById('ledgerTableBody');
                 if (customerTrans.length === 0) {
@@ -1834,13 +1929,13 @@
                         const itemsBrief = t.items.map(i => i.name).join('、');
                         const rowClass = t.debt > 0 ? 'unpaid-row' : '';
                         const statusClass = t.debt > 0 ? 'status-unpaid' : 'status-paid';
-                        const statusText = t.debt > 0 ? '欠' + t.debt.toFixed(0) + '元' : '已清';
+                        const statusText = t.debt > 0 ? '欠' + t.debt + '元' : '已清';
                         
-                        return `<tr class="${rowClass}" onclick="App.openDetail(${t.id})">
+                        return `<tr class="${rowClass}" onclick="App.openDetail('${t.id}')">
                             <td>${t.date}</td>
                             <td class="items-cell">${itemsBrief}</td>
-                            <td class="amount-cell">${t.actualAmount.toFixed(0)}元</td>
-                            <td class="amount-cell">${t.paidAmount.toFixed(0)}元</td>
+                            <td class="amount-cell">${t.actualAmount}元</td>
+                            <td class="amount-cell">${t.paidAmount}元</td>
                             <td class="status-cell"><span class="${statusClass}">${statusText}</span></td>
                         </tr>`;
                     }).join('');
@@ -1906,17 +2001,22 @@
                     const isCurrentMonth = monthKey === currentMonth;
                     
                     let monthTotalActual = 0, monthTotalPaid = 0, monthTotalDebt = 0, monthCapital = 0, monthCount = 0;
+                    let monthPigCount = 0, monthPigWeight = 0, monthPigHeadCount = 0, monthPigHeadWeight = 0;
                     Object.keys(monthData).forEach(date => {
                         const summary = this.getDailySummary(date);
                         monthTotalActual += summary.totalActual;
                         monthTotalPaid += summary.totalPaid;
                         monthTotalDebt += summary.totalDebt;
                         monthCount += summary.count;
+                        monthPigCount += summary.totalPigCount;
+                        monthPigWeight += summary.totalPigWeight;
+                        monthPigHeadCount += summary.totalPigHeadCount;
+                        monthPigHeadWeight += summary.totalPigHeadWeight;
                         monthCapital += this.dailyCapital[date] || 0;
                     });
                     const monthProfit = monthTotalActual - monthCapital;
                     const profitClass = monthProfit >= 0 ? 'profit' : 'loss';
-                    const profitText = monthProfit >= 0 ? `+${monthProfit.toFixed(0)}` : monthProfit.toFixed(0);
+                    const profitText = monthProfit >= 0 ? `+${monthProfit}` : `${monthProfit}`;
                     
                     const isExpanded = isCurrentMonth || this.expandedMonths[monthKey];
                     const expandedClass = isExpanded ? 'expanded' : '';
@@ -1928,8 +2028,8 @@
                                 ${isCurrentMonth ? '<span style="background:#2ec27e;padding:2px 8px;border-radius:10px;margin-left:10px;font-size:0.8em;">本月</span>' : ''}
                             </span>
                             <div class="month-stats">
-                                <span>${monthCount}单</span>
-                                <span>应收: ${monthTotalActual.toFixed(0)}元</span>
+                                <span>${monthCount}单 | 白条${monthPigCount}头/${monthPigWeight.toFixed(0)}斤 | 猪头${monthPigHeadCount}个</span>
+                                <span>应收: ${monthTotalActual}元</span>
                                 <span class="${profitClass}">盈亏: ${profitText}元</span>
                                 <i class="fas fa-chevron-down month-toggle ${expandedClass}"></i>
                             </div>
@@ -1943,7 +2043,7 @@
                         const capital = this.dailyCapital[date] || 0;
                         const profit = summary.totalActual - capital;
                         const dayProfitClass = profit >= 0 ? 'profit' : 'loss';
-                        const profitText2 = profit >= 0 ? `+${profit.toFixed(0)}` : profit.toFixed(0);
+                        const profitText2 = profit >= 0 ? `+${profit}` : `${profit}`;
                         
                         const dateParts = date.split('-');
                         const dateDisplay = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日`;
@@ -1954,9 +2054,9 @@
                             <div class="daily-header">
                                 <span class="daily-date"><i class="fas fa-calendar-day"></i> ${dateDisplay}${todayBadge}</span>
                                 <div class="daily-stats">
-                                    <span>${summary.count}单</span>
-                                    <span>应收: ${summary.totalActual.toFixed(0)}元</span>
-                                    <span>本金: ${capital.toFixed(0)}元</span>
+                                    <span>${summary.count}单 | 白条${summary.totalPigCount}头/${summary.totalPigWeight.toFixed(0)}斤 | 猪头${summary.totalPigHeadCount}个</span>
+                                    <span>应收: ${summary.totalActual}元</span>
+                                    <span>本金: ${capital}元</span>
                                     <span class="${dayProfitClass}" style="font-weight: bold;">盈亏: ${profitText2}元</span>
                                 </div>
                             </div>
@@ -1986,9 +2086,9 @@
                                 ${this.manageMode ? `<td class="checkbox-cell"><input type="checkbox" ${isSelected ? 'checked' : ''} onchange="App.toggleSelect('${t.id}')"></td>` : ''}
                                 <td class="customer-cell">${t.customer}</td>
                                 <td class="items-cell">${itemsBrief}</td>
-                                <td class="amount-cell">${t.actualAmount.toFixed(0)}元</td>
-                                <td class="amount-cell">${t.paidAmount.toFixed(0)}元</td>
-                                <td class="status-cell"><span class="${t.debt > 0 ? 'status-unpaid' : 'status-paid'}">${t.debt > 0 ? t.debt.toFixed(0) + '元' : '已清'}</span></td>
+                                <td class="amount-cell">${t.actualAmount}元</td>
+                                <td class="amount-cell">${t.paidAmount}元</td>
+                                <td class="status-cell"><span class="${t.debt > 0 ? 'status-unpaid' : 'status-paid'}">${t.debt > 0 ? t.debt + '元' : '已清'}</span></td>
                             </tr>`;
                         });
                         
@@ -1996,16 +2096,24 @@
                                 <div class="daily-footer">
                                     <div class="daily-footer-stats">
                                         <div class="daily-footer-stat">
+                                            <div class="daily-footer-stat-label">白条</div>
+                                            <div class="daily-footer-stat-value" style="color: var(--primary-color);">${summary.totalPigCount}头/${summary.totalPigWeight.toFixed(1)}斤</div>
+                                        </div>
+                                        <div class="daily-footer-stat">
+                                            <div class="daily-footer-stat-label">猪头</div>
+                                            <div class="daily-footer-stat-value" style="color: var(--purple-color);">${summary.totalPigHeadCount}个/${summary.totalPigHeadWeight.toFixed(1)}斤</div>
+                                        </div>
+                                        <div class="daily-footer-stat">
                                             <div class="daily-footer-stat-label">应收总额</div>
-                                            <div class="daily-footer-stat-value">${summary.totalActual.toFixed(0)}元</div>
+                                            <div class="daily-footer-stat-value">${summary.totalActual}元</div>
                                         </div>
                                         <div class="daily-footer-stat">
                                             <div class="daily-footer-stat-label">已收现钱</div>
-                                            <div class="daily-footer-stat-value">${summary.totalPaid.toFixed(0)}元</div>
+                                            <div class="daily-footer-stat-value">${summary.totalPaid}元</div>
                                         </div>
                                         <div class="daily-footer-stat">
                                             <div class="daily-footer-stat-label">新增欠款</div>
-                                            <div class="daily-footer-stat-value" style="color: var(--danger-color);">${summary.totalDebt.toFixed(0)}元</div>
+                                            <div class="daily-footer-stat-value" style="color: var(--danger-color);">${summary.totalDebt}元</div>
                                         </div>
                                         <div class="capital-input-group">
                                             <label>今日本金:</label>
@@ -2027,6 +2135,16 @@
                 });
                 
                 container.innerHTML = html;
+                
+                const totalPigCount = this.transactions.reduce((s, t) => s + (t.pigCount || 0), 0);
+                const totalPigWeight = this.transactions.reduce((s, t) => s + (t.pigWeight || 0), 0);
+                const totalPigHeadCount = this.transactions.reduce((s, t) => s + (t.pigHeadCount || 0), 0);
+                const totalPigHeadWeight = this.transactions.reduce((s, t) => s + (t.pigHeadWeight || 0), 0);
+                
+                document.getElementById('totalPigCount').textContent = totalPigCount;
+                document.getElementById('totalPigWeight').textContent = totalPigWeight.toFixed(1);
+                document.getElementById('totalPigHeadCount').textContent = totalPigHeadCount;
+                document.getElementById('totalPigHeadWeight').textContent = totalPigHeadWeight.toFixed(1);
                 
                 document.getElementById('batchActions').classList.toggle('show', this.manageMode);
                 document.getElementById('manageBtn').innerHTML = this.manageMode ? 
@@ -2167,7 +2285,11 @@
                     count: dayTrans.length,
                     totalActual: dayTrans.reduce((s, t) => s + t.actualAmount, 0),
                     totalPaid: dayTrans.reduce((s, t) => s + t.paidAmount, 0),
-                    totalDebt: dayTrans.reduce((s, t) => s + t.debt, 0)
+                    totalDebt: dayTrans.reduce((s, t) => s + t.debt, 0),
+                    totalPigCount: dayTrans.reduce((s, t) => s + (t.pigCount || 0), 0),
+                    totalPigWeight: dayTrans.reduce((s, t) => s + (t.pigWeight || 0), 0),
+                    totalPigHeadCount: dayTrans.reduce((s, t) => s + (t.pigHeadCount || 0), 0),
+                    totalPigHeadWeight: dayTrans.reduce((s, t) => s + (t.pigHeadWeight || 0), 0)
                 };
             },
             
@@ -2253,11 +2375,11 @@
                             <div class="level-stats">
                                 <div class="level-stat">
                                     <div class="level-stat-label">应收</div>
-                                    <div class="level-stat-value income">${summary.totalActual.toFixed(0)}元</div>
+                                    <div class="level-stat-value income">${summary.totalActual}元</div>
                                 </div>
                                 <div class="level-stat">
                                     <div class="level-stat-label">欠款</div>
-                                    <div class="level-stat-value debt">${summary.totalDebt.toFixed(0)}元</div>
+                                    <div class="level-stat-value debt">${summary.totalDebt}元</div>
                                 </div>
                             </div>
                             <i class="fas fa-chevron-right level-arrow"></i>
@@ -2294,11 +2416,11 @@
                             <div class="level-stats">
                                 <div class="level-stat">
                                     <div class="level-stat-label">应收</div>
-                                    <div class="level-stat-value income">${summary.totalActual.toFixed(0)}元</div>
+                                    <div class="level-stat-value income">${summary.totalActual}元</div>
                                 </div>
                                 <div class="level-stat">
                                     <div class="level-stat-label">欠款</div>
-                                    <div class="level-stat-value debt">${summary.totalDebt.toFixed(0)}元</div>
+                                    <div class="level-stat-value debt">${summary.totalDebt}元</div>
                                 </div>
                             </div>
                             <i class="fas fa-chevron-right level-arrow"></i>
@@ -2335,12 +2457,12 @@
                             <span class="level-title">${d}日</span>
                             <div class="level-stats">
                                 <div class="level-stat">
-                                    <div class="level-stat-label">${summary.count}单</div>
-                                    <div class="level-stat-value income">${summary.totalActual.toFixed(0)}元</div>
+                                    <div class="level-stat-label">${summary.count}单 ${summary.totalPigCount}头</div>
+                                    <div class="level-stat-value income">${summary.totalActual}元</div>
                                 </div>
                                 <div class="level-stat">
                                     <div class="level-stat-label">欠款</div>
-                                    <div class="level-stat-value debt">${summary.totalDebt.toFixed(0)}元</div>
+                                    <div class="level-stat-value debt">${summary.totalDebt}元</div>
                                 </div>
                             </div>
                             <i class="fas fa-chevron-right level-arrow"></i>
@@ -2391,12 +2513,12 @@
                         const itemsBrief = t.items.map(i => i.name).join('、');
                         const rowClass = t.debt > 0 ? 'unpaid-row' : '';
                         
-                        html += `<tr class="${rowClass}" onclick="App.openDetail(${t.id})">
+                        html += `<tr class="${rowClass}" onclick="App.openDetail('${t.id}')">
                             <td class="customer-cell">${t.customer}</td>
                             <td class="items-cell">${itemsBrief}</td>
-                            <td class="amount-cell">${t.actualAmount.toFixed(0)}元</td>
-                            <td class="amount-cell">${t.paidAmount.toFixed(0)}元</td>
-                            <td class="status-cell"><span class="${t.debt > 0 ? 'status-unpaid' : 'status-paid'}">${t.debt > 0 ? t.debt.toFixed(0) + '元' : '已清'}</span></td>
+                            <td class="amount-cell">${t.actualAmount}元</td>
+                            <td class="amount-cell">${t.paidAmount}元</td>
+                            <td class="status-cell"><span class="${t.debt > 0 ? 'status-unpaid' : 'status-paid'}">${t.debt > 0 ? t.debt + '元' : '已清'}</span></td>
                         </tr>`;
                     });
                 }
@@ -2410,16 +2532,20 @@
                         <div class="footer-stat-value">${summary.count}</div>
                     </div>
                     <div class="footer-stat">
+                        <div class="footer-stat-label">猪头数</div>
+                        <div class="footer-stat-value">${summary.totalPigCount}头</div>
+                    </div>
+                    <div class="footer-stat">
                         <div class="footer-stat-label">应收</div>
-                        <div class="footer-stat-value">${summary.totalActual.toFixed(0)}元</div>
+                        <div class="footer-stat-value">${summary.totalActual}元</div>
                     </div>
                     <div class="footer-stat">
                         <div class="footer-stat-label">已付</div>
-                        <div class="footer-stat-value">${summary.totalPaid.toFixed(0)}元</div>
+                        <div class="footer-stat-value">${summary.totalPaid}元</div>
                     </div>
                     <div class="footer-stat">
                         <div class="footer-stat-label">欠款</div>
-                        <div class="footer-stat-value">${summary.totalDebt.toFixed(0)}元</div>
+                        <div class="footer-stat-value">${summary.totalDebt}元</div>
                     </div>
                 </div></div>`;
                 
@@ -2431,6 +2557,10 @@
                 document.getElementById('addForm').reset();
                 document.getElementById('inputDate').value = this.getTodayStr();
                 document.getElementById('productRows').innerHTML = '';
+                document.getElementById('inputPigCount').value = 0;
+                document.getElementById('inputPigWeight').value = 0;
+                document.getElementById('inputPigHeadCount').value = 0;
+                document.getElementById('inputPigHeadWeight').value = 0;
                 this.currentProducts = [];
                 this.calculateTotal();
             },
@@ -2451,16 +2581,19 @@
                 
                 this.currentProducts.forEach((p, index) => {
                     const rowTotal = this.round2((p.weight - p.deduction) * p.price);
+                    const unit = this.defaultUnits[p.name] || '斤';
+                    const weightLabel = unit === '个' ? '数量(个)' : (unit === '副' ? '数量(副)' : '重量(斤)');
+                    
                     html += `<div class="product-row">
                         <div class="product-row-header">
-                            <span class="product-row-name">${p.name}</span>
+                            <span class="product-row-name">${p.name} <small style="color:#666;">(默认${p.price}元/${unit})</small></span>
                             <button type="button" class="product-row-delete" onclick="App.removeProductRow(${index})">
                                 <i class="fas fa-times"></i> 删除
                             </button>
                         </div>
                         <div class="product-row-inputs">
                             <div>
-                                <label>重量(斤)</label>
+                                <label>${weightLabel}</label>
                                 <input type="number" step="0.1" min="0" value="${p.weight || ''}" 
                                     onchange="App.updateProductField(${index}, 'weight', this.value)" placeholder="0">
                             </div>
@@ -2470,7 +2603,7 @@
                                     onchange="App.updateProductField(${index}, 'price', this.value)" placeholder="0">
                             </div>
                             <div>
-                                <label>减称(斤)</label>
+                                <label>减称(${unit === '个' || unit === '副' ? unit : '斤'})</label>
                                 <input type="number" step="0.1" min="0" value="${p.deduction || ''}" 
                                     onchange="App.updateProductField(${index}, 'deduction', this.value)" placeholder="0">
                             </div>
@@ -2504,18 +2637,18 @@
                 this.currentProducts.forEach(p => {
                     totalPrice += this.round2((p.weight - p.deduction) * p.price);
                 });
-                totalPrice = this.round2(totalPrice);
+                totalPrice = Math.round(this.round2(totalPrice));
                 
-                const badMeat = parseFloat(document.getElementById('inputBadMeat').value) || 0;
-                const discount = parseFloat(document.getElementById('inputDiscount').value) || 0;
-                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
+                const badMeat = Math.round(parseFloat(document.getElementById('inputBadMeat').value) || 0);
+                const discount = Math.round(parseFloat(document.getElementById('inputDiscount').value) || 0);
+                const paid = Math.round(parseFloat(document.getElementById('inputPaid').value) || 0);
                 
-                const actualAmount = this.round2(totalPrice - badMeat - discount);
-                const debt = this.round2(actualAmount - paid);
+                const actualAmount = Math.round(totalPrice - badMeat - discount);
+                const debt = Math.round(actualAmount - paid);
                 
-                document.getElementById('calcTotalPrice').textContent = totalPrice.toFixed(2) + ' 元';
-                document.getElementById('calcActualAmount').textContent = actualAmount.toFixed(2) + ' 元';
-                document.getElementById('calcDebt').textContent = debt.toFixed(2) + ' 元';
+                document.getElementById('calcTotalPrice').textContent = totalPrice + ' 元';
+                document.getElementById('calcActualAmount').textContent = actualAmount + ' 元';
+                document.getElementById('calcDebt').textContent = debt + ' 元';
             },
             
             showSuggestions(query) {
@@ -2561,13 +2694,17 @@
                 this.currentProducts.forEach(p => {
                     totalPrice += this.round2((p.weight - p.deduction) * p.price);
                 });
-                totalPrice = this.round2(totalPrice);
+                totalPrice = Math.round(this.round2(totalPrice));
                 
-                const badMeat = parseFloat(document.getElementById('inputBadMeat').value) || 0;
-                const discount = parseFloat(document.getElementById('inputDiscount').value) || 0;
-                const paid = parseFloat(document.getElementById('inputPaid').value) || 0;
-                const actualAmount = this.round2(totalPrice - badMeat - discount);
-                const debt = this.round2(actualAmount - paid);
+                const badMeat = Math.round(parseFloat(document.getElementById('inputBadMeat').value) || 0);
+                const discount = Math.round(parseFloat(document.getElementById('inputDiscount').value) || 0);
+                const paid = Math.round(parseFloat(document.getElementById('inputPaid').value) || 0);
+                const pigCount = parseInt(document.getElementById('inputPigCount').value) || 0;
+                const pigWeight = parseFloat(document.getElementById('inputPigWeight').value) || 0;
+                const pigHeadCount = parseInt(document.getElementById('inputPigHeadCount').value) || 0;
+                const pigHeadWeight = parseFloat(document.getElementById('inputPigHeadWeight').value) || 0;
+                const actualAmount = Math.round(totalPrice - badMeat - discount);
+                const debt = Math.round(actualAmount - paid);
                 
                 const transaction = {
                     id: Date.now() + Math.random().toString(36).substr(2, 9),
@@ -2585,7 +2722,11 @@
                     discount,
                     actualAmount,
                     paidAmount: paid,
-                    debt
+                    debt,
+                    pigCount,
+                    pigWeight,
+                    pigHeadCount,
+                    pigHeadWeight
                 };
                 
                 this.transactions.unshift(transaction);
@@ -2598,7 +2739,7 @@
                 closeAddModal();
                 this.updateTodayTable();
                 
-                alert(`保存成功！\n客户: ${customer}\n实际应收: ${actualAmount.toFixed(2)}元\n已付: ${paid.toFixed(2)}元\n欠款: ${debt.toFixed(2)}元`);
+                alert(`保存成功！\n客户: ${customer}\n白条: ${pigCount}头/${pigWeight}斤\n猪头: ${pigHeadCount}个/${pigHeadWeight}斤\n实际应收: ${actualAmount}元\n已付: ${paid}元\n欠款: ${debt}元`);
             },
             
             openDetail(id) {
@@ -2614,14 +2755,21 @@
                 document.getElementById('editDate').value = t.date;
                 document.getElementById('detailCustomer').textContent = t.customer;
                 
+                document.getElementById('detailPigStats').textContent = `${t.pigCount || 0} 头 / ${(t.pigWeight || 0).toFixed(1)} 斤`;
+                document.getElementById('detailPigHeadStats').textContent = `${t.pigHeadCount || 0} 个 / ${(t.pigHeadWeight || 0).toFixed(1)} 斤`;
+                document.getElementById('editPigCount').value = t.pigCount || 0;
+                document.getElementById('editPigWeight').value = t.pigWeight || 0;
+                document.getElementById('editPigHeadCount').value = t.pigHeadCount || 0;
+                document.getElementById('editPigHeadWeight').value = t.pigHeadWeight || 0;
+                
                 this.renderDetailItems(t.items, false);
                 
-                document.getElementById('detailTotalPrice').textContent = t.totalPrice.toFixed(2) + ' 元';
+                document.getElementById('detailTotalPrice').textContent = t.totalPrice + ' 元';
                 document.getElementById('editBadMeat').value = t.badMeat;
                 document.getElementById('editDiscount').value = t.discount;
                 document.getElementById('editPaid').value = t.paidAmount;
-                document.getElementById('detailActualAmount').textContent = t.actualAmount.toFixed(2) + ' 元';
-                document.getElementById('detailDebt').textContent = t.debt.toFixed(2) + ' 元';
+                document.getElementById('detailActualAmount').textContent = t.actualAmount + ' 元';
+                document.getElementById('detailDebt').textContent = t.debt + ' 元';
                 document.getElementById('inputAddPayment').value = '';
                 
                 document.getElementById('detailInfoSection').classList.remove('edit-mode');
@@ -2630,6 +2778,7 @@
                 
                 document.getElementById('detailDateRow').style.display = 'flex';
                 document.getElementById('editDateGroup').style.display = 'none';
+                document.getElementById('editPigStatsGroup').style.display = 'none';
                 document.getElementById('editBadMeat').readOnly = true;
                 document.getElementById('editBadMeat').classList.remove('editable');
                 document.getElementById('editDiscount').readOnly = true;
@@ -2702,18 +2851,18 @@
                 this.editProducts.forEach(p => {
                     totalPrice += this.round2((p.weight - p.deduction) * p.price);
                 });
-                totalPrice = this.round2(totalPrice);
+                totalPrice = Math.round(this.round2(totalPrice));
                 
-                const badMeat = parseFloat(document.getElementById('editBadMeat').value) || 0;
-                const discount = parseFloat(document.getElementById('editDiscount').value) || 0;
-                const paid = parseFloat(document.getElementById('editPaid').value) || 0;
+                const badMeat = Math.round(parseFloat(document.getElementById('editBadMeat').value) || 0);
+                const discount = Math.round(parseFloat(document.getElementById('editDiscount').value) || 0);
+                const paid = Math.round(parseFloat(document.getElementById('editPaid').value) || 0);
                 
-                const actualAmount = this.round2(totalPrice - badMeat - discount);
-                const debt = this.round2(actualAmount - paid);
+                const actualAmount = Math.round(totalPrice - badMeat - discount);
+                const debt = Math.round(actualAmount - paid);
                 
-                document.getElementById('detailTotalPrice').textContent = totalPrice.toFixed(2) + ' 元';
-                document.getElementById('detailActualAmount').textContent = actualAmount.toFixed(2) + ' 元';
-                document.getElementById('detailDebt').textContent = debt.toFixed(2) + ' 元';
+                document.getElementById('detailTotalPrice').textContent = totalPrice + ' 元';
+                document.getElementById('detailActualAmount').textContent = actualAmount + ' 元';
+                document.getElementById('detailDebt').textContent = debt + ' 元';
             },
             
             enterEditMode() {
@@ -2731,6 +2880,7 @@
                 
                 document.getElementById('detailDateRow').style.display = 'none';
                 document.getElementById('editDateGroup').style.display = 'block';
+                document.getElementById('editPigStatsGroup').style.display = 'block';
                 document.getElementById('editBadMeat').readOnly = false;
                 document.getElementById('editBadMeat').classList.add('editable');
                 document.getElementById('editDiscount').readOnly = false;
@@ -2754,13 +2904,17 @@
                 this.editProducts.forEach(p => {
                     totalPrice += this.round2((p.weight - p.deduction) * p.price);
                 });
-                totalPrice = this.round2(totalPrice);
+                totalPrice = Math.round(this.round2(totalPrice));
                 
-                const badMeat = parseFloat(document.getElementById('editBadMeat').value) || 0;
-                const discount = parseFloat(document.getElementById('editDiscount').value) || 0;
-                const paid = parseFloat(document.getElementById('editPaid').value) || 0;
-                const actualAmount = this.round2(totalPrice - badMeat - discount);
-                const debt = this.round2(actualAmount - paid);
+                const badMeat = Math.round(parseFloat(document.getElementById('editBadMeat').value) || 0);
+                const discount = Math.round(parseFloat(document.getElementById('editDiscount').value) || 0);
+                const paid = Math.round(parseFloat(document.getElementById('editPaid').value) || 0);
+                const pigCount = parseInt(document.getElementById('editPigCount').value) || 0;
+                const pigWeight = parseFloat(document.getElementById('editPigWeight').value) || 0;
+                const pigHeadCount = parseInt(document.getElementById('editPigHeadCount').value) || 0;
+                const pigHeadWeight = parseFloat(document.getElementById('editPigHeadWeight').value) || 0;
+                const actualAmount = Math.round(totalPrice - badMeat - discount);
+                const debt = Math.round(actualAmount - paid);
                 
                 t.date = newDate;
                 t.items = this.editProducts.map(p => ({
@@ -2776,6 +2930,10 @@
                 t.actualAmount = actualAmount;
                 t.paidAmount = paid;
                 t.debt = debt;
+                t.pigCount = pigCount;
+                t.pigWeight = pigWeight;
+                t.pigHeadCount = pigHeadCount;
+                t.pigHeadWeight = pigHeadWeight;
                 
                 this.saveToStorage();
                 this.editMode = false;
@@ -2786,7 +2944,7 @@
                     this.showDayTable(this.navPath.day);
                 }
                 
-                alert('修改成功！\n实际应收: ' + actualAmount.toFixed(2) + '元\n欠款: ' + debt.toFixed(2) + '元');
+                alert('修改成功！\n白条: ' + pigCount + '头/' + pigWeight + '斤\n猪头: ' + pigHeadCount + '个/' + pigHeadWeight + '斤\n实际应收: ' + actualAmount + '元\n欠款: ' + debt + '元');
             },
             
             cancelEdit() {
@@ -3053,11 +3211,18 @@
                 const dailyData = {};
                 data.forEach(t => {
                     if (!dailyData[t.date]) {
-                        dailyData[t.date] = { capital: 0, actualAmount: 0, paid: 0, debt: 0 };
+                        dailyData[t.date] = { 
+                            capital: 0, actualAmount: 0, paid: 0, debt: 0, 
+                            pigCount: 0, pigWeight: 0, pigHeadCount: 0, pigHeadWeight: 0 
+                        };
                     }
                     dailyData[t.date].actualAmount += t.actualAmount;
                     dailyData[t.date].paid += t.paidAmount;
                     dailyData[t.date].debt += t.debt;
+                    dailyData[t.date].pigCount += t.pigCount || 0;
+                    dailyData[t.date].pigWeight += t.pigWeight || 0;
+                    dailyData[t.date].pigHeadCount += t.pigHeadCount || 0;
+                    dailyData[t.date].pigHeadWeight += t.pigHeadWeight || 0;
                 });
                 
                 Object.keys(this.dailyCapital).forEach(date => {
@@ -3069,10 +3234,11 @@
                     }
                 });
                 
-                const rows = [['日期', '今日总本金(元)', '今日实际应收(元)', '今日盈亏(元)', '今日已付(元)', '今日新增欠款(元)']];
+                const rows = [['日期', '白条头数', '白条斤数', '猪头个数', '猪头斤数', '今日总本金(元)', '今日实际应收(元)', '今日盈亏(元)', '今日已付(元)', '今日新增欠款(元)']];
                 
                 const sortedDates = Object.keys(dailyData).sort();
                 let totalCapital = 0, totalActual = 0, totalProfit = 0, totalPaid = 0, totalDebt = 0;
+                let totalPigCount = 0, totalPigWeight = 0, totalPigHeadCount = 0, totalPigHeadWeight = 0;
                 
                 sortedDates.forEach(date => {
                     const d = dailyData[date];
@@ -3082,22 +3248,30 @@
                     totalProfit += profit;
                     totalPaid += d.paid;
                     totalDebt += d.debt;
+                    totalPigCount += d.pigCount;
+                    totalPigWeight += d.pigWeight;
+                    totalPigHeadCount += d.pigHeadCount;
+                    totalPigHeadWeight += d.pigHeadWeight;
                     
                     const dateParts = date.split('-');
                     const dateDisplay = `${parseInt(dateParts[1])}月${parseInt(dateParts[2])}日`;
                     
                     rows.push([
                         dateDisplay,
-                        d.capital.toFixed(2),
-                        d.actualAmount.toFixed(2),
-                        profit.toFixed(2),
-                        d.paid.toFixed(2),
-                        d.debt.toFixed(2)
+                        d.pigCount,
+                        d.pigWeight.toFixed(1),
+                        d.pigHeadCount,
+                        d.pigHeadWeight.toFixed(1),
+                        d.capital,
+                        d.actualAmount,
+                        profit,
+                        d.paid,
+                        d.debt
                     ]);
                 });
                 
                 rows.push([]);
-                rows.push(['月度总账', totalCapital.toFixed(2), totalActual.toFixed(2), totalProfit.toFixed(2), totalPaid.toFixed(2), totalDebt.toFixed(2)]);
+                rows.push(['月度总账', totalPigCount, totalPigWeight.toFixed(1), totalPigHeadCount, totalPigHeadWeight.toFixed(1), totalCapital, totalActual, totalProfit, totalPaid, totalDebt]);
                 
                 const ws = XLSX.utils.aoa_to_sheet(rows);
                 const wb = XLSX.utils.book_new();
@@ -3105,6 +3279,10 @@
                 
                 ws['!cols'] = [
                     { wch: 12 },
+                    { wch: 10 },
+                    { wch: 10 },
+                    { wch: 10 },
+                    { wch: 10 },
                     { wch: 16 },
                     { wch: 18 },
                     { wch: 14 },
@@ -3125,7 +3303,7 @@
             },
             
             exportToExcel(data, filename) {
-                const rows = [['客户', '货品明细', '总重(斤)', '烂肉(元)', '抹零(元)', '实际应收(元)', '已支付(元)', '欠款(元)', '日期']];
+                const rows = [['客户', '货品明细', '总重(斤)', '白条头数', '白条斤数', '猪头个数', '猪头斤数', '烂肉(元)', '抹零(元)', '实际应收(元)', '已支付(元)', '欠款(元)', '日期']];
                 
                 data.forEach(t => {
                     const itemsDetail = t.items.map(i => 
@@ -3138,11 +3316,15 @@
                         t.customer,
                         itemsDetail,
                         totalWeight.toFixed(2),
-                        t.badMeat.toFixed(2),
-                        t.discount.toFixed(2),
-                        t.actualAmount.toFixed(2),
-                        t.paidAmount.toFixed(2),
-                        t.debt.toFixed(2),
+                        t.pigCount || 0,
+                        (t.pigWeight || 0).toFixed(1),
+                        t.pigHeadCount || 0,
+                        (t.pigHeadWeight || 0).toFixed(1),
+                        t.badMeat,
+                        t.discount,
+                        t.actualAmount,
+                        t.paidAmount,
+                        t.debt,
                         t.date
                     ]);
                 });
@@ -3154,6 +3336,10 @@
                 const colWidths = [
                     { wch: 10 },
                     { wch: 50 },
+                    { wch: 10 },
+                    { wch: 10 },
+                    { wch: 10 },
+                    { wch: 10 },
                     { wch: 10 },
                     { wch: 10 },
                     { wch: 10 },
